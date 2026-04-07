@@ -219,7 +219,7 @@ function ShoppingList({days,I}) {
   Object.entries(dailyAgg).forEach(([id,qpd])=>{const ing=I.find(i=>i.id===id);if(!ing)return;const ts=qpd*7;const pk=Math.ceil(ts/ing.packServings);dailyList.push({...ing,totalServes:ts,packsNeeded:pk,cost:pk*ing.pricePerPack});});
   const grouped={};
   Object.entries(rotation).forEach(([id,ts])=>{const ing=I.find(i=>i.id===id);if(!ing)return;if(!grouped[ing.category])grouped[ing.category]=[];const pk=Math.ceil(ts/ing.packServings);grouped[ing.category].push({...ing,totalServes:ts,packsNeeded:pk,cost:pk*ing.pricePerPack});});
-  let total=0;Object.values(grouped).forEach(items=>items.forEach(i=>total+=i.cost));dailyList.forEach(i=>total+=i.cost);
+  let total=0;Object.values(grouped).forEach(items=>items.forEach(i=>total+=i.cost));
   const Row=({item})=>(
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",fontSize:13,fontFamily:sans}}>
       <span style={{color:t1}}>{item.shopName || item.name}</span>
@@ -240,12 +240,12 @@ function ShoppingList({days,I}) {
           {grouped[cat].map(item=><Row key={item.id} item={item}/>)}
         </div>);
       })}
-      {dailyList.length>0&&(
-        <div style={{marginTop:24,paddingTop:16,borderTop:`1px solid ${br1}`}}>
-          <div style={{fontSize:11,fontFamily:mono,textTransform:"uppercase",letterSpacing:"0.08em",color:t3,marginBottom:12}}>Daily Essentials (weekly)</div>
-          {dailyList.map(item=><Row key={item.id} item={item}/>)}
-        </div>
-      )}
+      <div style={{marginTop:24,paddingTop:16,borderTop:`1px solid ${br1}`}}>
+        <div style={{fontSize:11,fontFamily:mono,textTransform:"uppercase",letterSpacing:"0.08em",color:t3,marginBottom:12}}>Keep on Hand</div>
+        {["Plant Protein Powder","Creatine Monohydrate","Herbamare Seasoning","Pepper Steak Seasoning"].map(name=>(
+          <div key={name} style={{padding:"7px 0",fontSize:13,fontFamily:sans,color:t1}}>{name}</div>
+        ))}
+      </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 0",borderTop:`2px solid ${br1}`,marginTop:20,fontFamily:mono}}>
         <span style={{fontSize:12,fontWeight:600,color:t1,textTransform:"uppercase",letterSpacing:"0.04em"}}>Est. Rotation Cost</span>
         <span style={{fontSize:22,fontWeight:700,color:t1}}>${total.toFixed(2)}</span>
