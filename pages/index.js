@@ -339,6 +339,9 @@ export default function MealPlanner() {
       if(d.targets) setTargets(d.targets);
     }
     setLoaded(true);
+    if("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(()=>{});
+    }
   },[]);
 
   useEffect(()=>{
