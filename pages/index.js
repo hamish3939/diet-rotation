@@ -92,6 +92,7 @@ const DEFAULT_DAYS = [
   }},
 ];
 
+const DATA_VERSION = 2;
 const DEFAULT_TARGETS = { calories: 2800, protein: 170, carbs: 320, fat: 85 };
 const CATEGORY_LABELS = { protein: "Proteins", carb: "Carbs", dairy: "Dairy", fat: "Fats", supplement: "Supplements", other: "Other" };
 const SLOT_ORDER = ["shake", "riceSnack", "yoghurtSnack", "main"];
@@ -103,11 +104,17 @@ const t1 = "#e4e4e8", t2 = "#8e8e9a", t3 = "#4e4e5a";
 
 function loadData() {
   if (typeof window === "undefined") return null;
-  try { const d = localStorage.getItem("diet-rotation"); return d ? JSON.parse(d) : null; } catch { return null; }
+  try {
+    const d = localStorage.getItem("diet-rotation");
+    if (!d) return null;
+    const parsed = JSON.parse(d);
+    if (parsed.version !== DATA_VERSION) return null;
+    return parsed;
+  } catch { return null; }
 }
 function saveData(data) {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem("diet-rotation", JSON.stringify(data)); } catch {}
+  try { localStorage.setItem("diet-rotation", JSON.stringify({ ...data, version: DATA_VERSION })); } catch {}
 }
 
 function calcMealMacros(meal, I) {
