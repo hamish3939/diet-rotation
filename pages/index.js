@@ -22,7 +22,7 @@ const DEFAULT_INGREDIENTS = [
   { id: "peanut-butter", name: "Peanut Butter", shopName: "Peanut Butter", brand: "Generic", servingLabel: "1 tbsp · 16g", servingGrams: 16, protein: 4, carbs: 3, fat: 8, calories: 95, category: "fat", pricePerPack: 5, packServings: 25 },
   { id: "zero-drink", name: "Zero Soft Drink", shopName: "Fanta Zero / Coke Zero / Sprite Zero 6-Pack Minis", brand: "Fanta/Coke/Sprite", servingLabel: "2 mini cans", servingGrams: 500, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 9, packServings: 3 },
   { id: "spinach", name: "Baby Spinach", shopName: "Coles Baby Spinach 120g", brand: "Coles (120g bag)", servingLabel: "big handful · 60g", servingGrams: 60, protein: 2, carbs: 1, fat: 0, calories: 14, category: "carb", pricePerPack: 3, packServings: 2 },
-  { id: "gyg-bowl", name: "GYG Bowl", shopName: "Guzman y Gomez Bowl (eat-in)", brand: "Guzman y Gomez", servingLabel: "custom order", servingGrams: 480, protein: 44, carbs: 74, fat: 30, calories: 760, category: "other", pricePerPack: 18, packServings: 1, note: "Dual protein: slow cooked + ground beef. Chimi mayo instead of cheese. No sour cream." },
+  { id: "gyg-bowl", name: "GYG Bowl", shopName: "Guzman y Gomez Bowl", brand: "Guzman y Gomez", servingLabel: "custom order", servingGrams: 480, protein: 44, carbs: 74, fat: 30, calories: 760, category: "other", pricePerPack: 18, packServings: 1, note: "Dual protein: slow cooked + ground beef. Chimi mayo instead of cheese. No sour cream." },
   { id: "vanilla-essence", name: "Vanilla Essence", shopName: "Vanilla Essence", brand: "Generic", servingLabel: "", servingGrams: 0, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 0, packServings: 1, daily: true },
 ];
 
@@ -226,8 +226,8 @@ function ShoppingList({days,I}) {
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",fontSize:13,fontFamily:sans}}>
       <span style={{color:t1}}>{item.shopName || item.name}</span>
       <div style={{display:"flex",gap:16,alignItems:"center",fontFamily:mono,fontSize:12}}>
-        <span style={{color:t2}}>{item.totalServes}sv</span>
-        <span style={{color:t3}}>{item.packsNeeded}pk</span>
+        <span style={{color:t2}}>{item.packServings===1?`×${item.totalServes}`:`${item.totalServes}sv`}</span>
+        {item.packServings>1&&<span style={{color:t3}}>{item.packsNeeded}pk</span>}
         <span style={{color:t1,fontWeight:600,minWidth:52,textAlign:"right"}}>${item.cost.toFixed(2)}</span>
       </div>
     </div>
