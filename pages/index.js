@@ -14,7 +14,7 @@ const DEFAULT_INGREDIENTS = [
   { id: "avofresh", name: "Avofresh Hint of Lemon", shopName: "Avofresh Tube Hint of Lemon 160g", brand: "Avofresh (160g tube)", servingLabel: "¼ tube · 40g", servingGrams: 40, protein: 1, carbs: 0, fat: 9, calories: 83, category: "fat", pricePerPack: 6, packServings: 4 },
   { id: "cocobella", name: "Coconut Yoghurt Vanilla", shopName: "Cocobella Coconut Yoghurt Vanilla 500g", brand: "Cocobella (500g tub)", servingLabel: "½ tub · 250g", servingGrams: 250, protein: 3, carbs: 20, fat: 25, calories: 338, category: "dairy", pricePerPack: 7, packServings: 2 },
   { id: "carmans", name: "Oat Clusters Honey Crunch", shopName: "Carman's Aussie Oat Clusters Honey Crunch 450g", brand: "Carman's (450g)", servingLabel: "1 cup · ~50g", servingGrams: 50, protein: 4, carbs: 33, fat: 5, calories: 200, category: "carb", pricePerPack: 8.9, packServings: 9 },
-  { id: "banana", name: "Banana", shopName: "Bananas", brand: "Fresh", servingLabel: "1 medium", servingGrams: 120, protein: 1, carbs: 27, fat: 0, calories: 105, category: "carb", pricePerPack: 4, packServings: 6 },
+  { id: "banana", name: "Banana", shopName: "Banana", brand: "Fresh", servingLabel: "1 medium", servingGrams: 120, protein: 1, carbs: 27, fat: 0, calories: 105, category: "carb", pricePerPack: 1, packServings: 1 },
   { id: "frozen-berries", name: "Frozen Mixed Berries", shopName: "Coles Frozen Mixed Berries 500g", brand: "Coles (500g bag)", servingLabel: "½ bag · 250g", servingGrams: 250, protein: 2, carbs: 33, fat: 0, calories: 150, category: "carb", pricePerPack: 5, packServings: 2 },
   { id: "hp-almond-milk", name: "High Protein Almond Milk", shopName: "Sanitarium So Good High Protein Almond Milk 1L", brand: "So Good (1L)", servingLabel: "250ml", servingGrams: 250, protein: 10, carbs: 1, fat: 5.5, calories: 97, category: "dairy", pricePerPack: 5, packServings: 4 },
   { id: "plant-protein", name: "Plant Protein Powder", shopName: "Plant Protein Powder", brand: "Generic", servingLabel: "1 scoop · 30g", servingGrams: 30, protein: 20, carbs: 2, fat: 1, calories: 120, category: "supplement", pricePerPack: 45, packServings: 30, daily: true },
@@ -23,15 +23,17 @@ const DEFAULT_INGREDIENTS = [
   { id: "zero-drink", name: "Zero Soft Drink", shopName: "Fanta Zero / Coke Zero / Sprite Zero 6-Pack Minis", brand: "Fanta/Coke/Sprite", servingLabel: "2 mini cans", servingGrams: 500, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 9, packServings: 3 },
   { id: "spinach", name: "Baby Spinach", shopName: "Coles Baby Spinach 120g", brand: "Coles (120g bag)", servingLabel: "big handful · 60g", servingGrams: 60, protein: 2, carbs: 1, fat: 0, calories: 14, category: "carb", pricePerPack: 3, packServings: 2 },
   { id: "gyg-bowl", name: "GYG Bowl", shopName: "Guzman y Gomez Bowl (eat-in)", brand: "Guzman y Gomez", servingLabel: "custom order", servingGrams: 480, protein: 44, carbs: 74, fat: 30, calories: 760, category: "other", pricePerPack: 18, packServings: 1, note: "Dual protein: slow cooked + ground beef. Chimi mayo instead of cheese. No sour cream." },
+  { id: "vanilla-essence", name: "Vanilla Essence", shopName: "Vanilla Essence", brand: "Generic", servingLabel: "", servingGrams: 0, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 0, packServings: 1, daily: true },
 ];
 
-const SHAKE = { name: "The Big Shake", items: [
+const SHAKE = { name: "Protein Shake", items: [
   { ingredientId: "plant-protein", qty: 3 },
   { ingredientId: "banana", qty: 1 },
   { ingredientId: "hp-almond-milk", qty: 1 },
   { ingredientId: "frozen-berries", qty: 1 },
   { ingredientId: "spinach", qty: 1 },
   { ingredientId: "creatine", qty: 1 },
+  { ingredientId: "vanilla-essence", qty: 1 },
 ]};
 
 const YOGHURT = { name: "Yoghurt Bowl", items: [
@@ -242,7 +244,7 @@ function ShoppingList({days,I}) {
       })}
       <div style={{marginTop:24,paddingTop:16,borderTop:`1px solid ${br1}`}}>
         <div style={{fontSize:11,fontFamily:mono,textTransform:"uppercase",letterSpacing:"0.08em",color:t3,marginBottom:12}}>Keep on Hand</div>
-        {["Plant Protein Powder","Creatine Monohydrate","Herbamare Seasoning","Pepper Steak Seasoning"].map(name=>(
+        {["Plant Protein Powder","Creatine Monohydrate","Herbamare Seasoning","Pepper Steak Seasoning","Olive Oil Spray","Vanilla Essence"].map(name=>(
           <div key={name} style={{padding:"7px 0",fontSize:13,fontFamily:sans,color:t1}}>{name}</div>
         ))}
       </div>
@@ -350,7 +352,7 @@ export default function MealPlanner() {
 
   if(!loaded) return <div style={{padding:40,textAlign:"center",color:t3,fontFamily:mono,background:bg0,minHeight:"100vh"}}>Loading...</div>;
 
-  const tabs=[{id:"planner",label:"Days"},{id:"ingredients",label:"Ingredients"},{id:"shopping",label:"Shopping"},{id:"targets",label:"Targets"}];
+  const tabs=[{id:"planner",label:"Days"},{id:"shopping",label:"Shopping"},{id:"ingredients",label:"Ingredients"},{id:"targets",label:"Targets"}];
   const categories=["all",...Object.keys(CATEGORY_LABELS)];
   const filtered=catFilter==="all"?I:I.filter(i=>i.category===catFilter);
   const avgs=calcAvgs(days,I);
