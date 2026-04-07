@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "next": "latest",
+    "next-pwa": "latest",
     "react": "latest",
     "react-dom": "latest"
   }
