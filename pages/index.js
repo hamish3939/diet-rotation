@@ -55,7 +55,7 @@ const DEFAULT_DAYS = [
   { id: "day1", label: "Day 1 — Basa", meals: {
     shake: { ...SHAKE },
     riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
-      { ingredientId: "carved-chicken", qty: 2 }, { ingredientId: "bens-chicken-rice", qty: 1 },
+      { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
       { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
     yoghurtSnack: { ...PB_TOAST },
@@ -67,7 +67,7 @@ const DEFAULT_DAYS = [
   { id: "day2", label: "Day 2 — Salmon", meals: {
     shake: { ...SHAKE },
     riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
-      { ingredientId: "carved-chicken", qty: 2 }, { ingredientId: "bens-chicken-rice", qty: 1 },
+      { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
       { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
     yoghurtSnack: { ...PB_TOAST },
@@ -272,15 +272,9 @@ function ShoppingList({days,I}) {
   );
 }
 
-function TargetsTab({targets,setTargets,days,I}) {
+function TargetsTab({targets,days,I}) {
   const avgs = calcAvgs(days,I);
   const perDay = days.map(d => ({ label: d.label, macros: calcDayMacros(d, I) }));
-  const sliders = [
-    { key: "calories", label: "Calories", unit: "kcal", min: 1800, max: 4000, step: 50, color: "#777" },
-    { key: "protein", label: "Protein", unit: "g", min: 100, max: 300, step: 5, color: "#6ec87a" },
-    { key: "carbs", label: "Carbs", unit: "g", min: 150, max: 500, step: 5, color: "#e8a955" },
-    { key: "fat", label: "Fat", unit: "g", min: 40, max: 150, step: 5, color: "#c97ab8" },
-  ];
   return (
     <div>
       <div style={{background:bg1,border:`1px solid ${br1}`,borderRadius:12,padding:18,marginBottom:16}}>
@@ -298,7 +292,7 @@ function TargetsTab({targets,setTargets,days,I}) {
               <div key={m.l} style={{textAlign:"center"}}>
                 <div style={{fontSize:9,fontFamily:mono,color:t3,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>{m.l}</div>
                 <div style={{fontSize:20,fontWeight:700,fontFamily:mono,color:over?"#ef5555":t1}}>{m.v}</div>
-                <div style={{fontSize:11,fontFamily:mono,color:diff>0?"#ef5555aa":diff<-20?"#e8a955aa":t3,marginTop:2}}>
+                <div style={{fontSize:11,fontFamily:mono,color:over?"#ef5555aa":diff<-20?"#e8a955aa":t3,marginTop:2}}>
                   {diff>0?"+":""}{diff}{m.u==="kcal"?"":"g"}
                 </div>
               </div>
@@ -320,22 +314,6 @@ function TargetsTab({targets,setTargets,days,I}) {
           </div>
         ))}
       </div>
-      <div style={{fontSize:11,fontFamily:mono,textTransform:"uppercase",letterSpacing:"0.08em",color:t3,marginBottom:14}}>Adjust Targets</div>
-      {sliders.map(s => (
-        <div key={s.key} style={{background:bg1,border:`1px solid ${br1}`,borderRadius:10,padding:"14px 16px",marginBottom:8}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:10}}>
-            <span style={{fontSize:13,fontFamily:sans,color:t2,fontWeight:600}}>{s.label}</span>
-            <span style={{fontSize:18,fontFamily:mono,fontWeight:700,color:t1}}>{targets[s.key]}<span style={{fontSize:12,fontWeight:400,color:t3,marginLeft:3}}>{s.unit}</span></span>
-          </div>
-          <input type="range" min={s.min} max={s.max} step={s.step} value={targets[s.key]}
-            onChange={e => setTargets(prev => ({...prev, [s.key]: parseInt(e.target.value)}))}
-            style={{width:"100%",height:6,appearance:"none",WebkitAppearance:"none",background:`linear-gradient(to right, ${s.color} ${((targets[s.key]-s.min)/(s.max-s.min))*100}%, ${bg2} ${((targets[s.key]-s.min)/(s.max-s.min))*100}%)`,borderRadius:3,outline:"none",cursor:"pointer"}}
-          />
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,fontFamily:mono,color:t3,marginTop:4}}>
-            <span>{s.min}{s.unit}</span><span>{s.max}{s.unit}</span>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -444,7 +422,7 @@ export default function MealPlanner() {
         )}
 
         {tab==="shopping"&&<ShoppingList days={days} I={I}/>}
-        {tab==="targets"&&<TargetsTab targets={targets} setTargets={setTargets} days={days} I={I}/>}
+        {tab==="targets"&&<TargetsTab targets={targets} days={days} I={I}/>}
 
         <div style={{height:60}}/>
       </div>
