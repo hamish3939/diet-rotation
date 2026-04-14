@@ -170,17 +170,17 @@ function MealCard({meal,I}) {
 function DayView({day,I,targets}) {
   const m=calcDayMacros(day,I);
   const bars=[
-    {label:"Calories",value:m.calories,target:targets.calories,color:"#777"},
-    {label:"Protein",value:m.protein,target:targets.protein,color:"#6ec87a"},
-    {label:"Carbs",value:m.carbs,target:targets.carbs,color:"#e8a955"},
-    {label:"Fat",value:m.fat,target:targets.fat,color:"#c97ab8"},
+    {label:"Calories",value:m.calories,target:targets.calories,color:"#777",warnOver:true},
+    {label:"Protein",value:m.protein,target:targets.protein,color:"#6ec87a",warnOver:false},
+    {label:"Carbs",value:m.carbs,target:targets.carbs,color:"#e8a955",warnOver:true},
+    {label:"Fat",value:m.fat,target:targets.fat,color:"#c97ab8",warnOver:true},
   ];
   return (
     <div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
         {bars.map(b=>{
           const pct=Math.min((b.value/b.target)*100,100);
-          const over=b.value>b.target*1.08;
+          const over=b.warnOver&&b.value>b.target*1.08;
           return (
             <div key={b.label} style={{background:bg1,border:`1px solid ${br1}`,borderRadius:10,padding:"10px 14px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}>
@@ -281,13 +281,13 @@ function TargetsTab({targets,days,I}) {
         <div style={{fontSize:11,fontFamily:mono,textTransform:"uppercase",letterSpacing:"0.08em",color:t3,marginBottom:14}}>Rotation Average (4 days)</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8}}>
           {[
-            {l:"Calories",v:avgs.calories,t:targets.calories,u:"kcal",c:"#777"},
-            {l:"Protein",v:avgs.protein,t:targets.protein,u:"g",c:"#6ec87a"},
-            {l:"Carbs",v:avgs.carbs,t:targets.carbs,u:"g",c:"#e8a955"},
-            {l:"Fat",v:avgs.fat,t:targets.fat,u:"g",c:"#c97ab8"},
+            {l:"Calories",v:avgs.calories,t:targets.calories,u:"kcal",c:"#777",wo:true},
+            {l:"Protein",v:avgs.protein,t:targets.protein,u:"g",c:"#6ec87a",wo:false},
+            {l:"Carbs",v:avgs.carbs,t:targets.carbs,u:"g",c:"#e8a955",wo:true},
+            {l:"Fat",v:avgs.fat,t:targets.fat,u:"g",c:"#c97ab8",wo:true},
           ].map(m => {
             const diff = m.v - m.t;
-            const over = diff > m.t * 0.08;
+            const over = m.wo && diff > m.t * 0.08;
             return (
               <div key={m.l} style={{textAlign:"center"}}>
                 <div style={{fontSize:9,fontFamily:mono,color:t3,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>{m.l}</div>
