@@ -23,6 +23,8 @@ const DEFAULT_INGREDIENTS = [
   { id: "zero-drink", name: "Zero Soft Drink", shopName: "Fanta Zero / Coke Zero / Sprite Zero 6-Pack Minis", brand: "Fanta/Coke/Sprite", servingLabel: "2 mini cans", servingGrams: 500, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 9, packServings: 3 },
   { id: "spinach", name: "Frozen Chopped Spinach", shopName: "Birds Eye Frozen Chopped Spinach 250g", brand: "Birds Eye (250g)", servingLabel: "1 portion · ~40g", servingGrams: 40, protein: 1, carbs: 1, fat: 0, calories: 9, category: "carb", pricePerPack: 2.8, packServings: 6 },
   { id: "gyg-bowl", name: "GYG Bowl", shopName: "Guzman y Gomez Bowl", brand: "Guzman y Gomez", servingLabel: "custom order", servingGrams: 480, protein: 44, carbs: 74, fat: 30, calories: 760, category: "other", pricePerPack: 18, packServings: 1, note: "Dual protein: slow cooked + ground beef. Chimi mayo instead of cheese. No sour cream." },
+  { id: "chia-seeds", name: "Black Chia Seeds", shopName: "Coles Black Chia Mix 200g", brand: "Coles (200g)", servingLabel: "1 tbsp · 12g", servingGrams: 12, protein: 2, carbs: 5, fat: 4, calories: 58, category: "supplement", pricePerPack: 5, packServings: 16, daily: true },
+  { id: "hp-bread", name: "High Protein Bread", shopName: "Abbott's Bakery High Protein Soy Chickpea & Quinoa 700g", brand: "Abbott's (700g)", servingLabel: "1 slice", servingGrams: 47, protein: 6, carbs: 16, fat: 1.5, calories: 100, category: "carb", pricePerPack: 5.80, packServings: 15 },
   { id: "vanilla-essence", name: "Vanilla Essence", shopName: "Vanilla Essence", brand: "Generic", servingLabel: "", servingGrams: 0, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 0, packServings: 1, daily: true },
 ];
 
@@ -33,7 +35,14 @@ const SHAKE = { name: "Protein Shake", items: [
   { ingredientId: "frozen-berries", qty: 1 },
   { ingredientId: "spinach", qty: 1 },
   { ingredientId: "creatine", qty: 1 },
+  { ingredientId: "chia-seeds", qty: 1 },
   { ingredientId: "vanilla-essence", qty: 1 },
+]};
+
+const PB_TOAST = { name: "PB Toast + Banana", items: [
+  { ingredientId: "hp-bread", qty: 2 },
+  { ingredientId: "peanut-butter", qty: 2 },
+  { ingredientId: "banana", qty: 1 },
 ]};
 
 const YOGHURT = { name: "Yoghurt Bowl", items: [
@@ -46,10 +55,10 @@ const DEFAULT_DAYS = [
   { id: "day1", label: "Day 1 — Basa", meals: {
     shake: { ...SHAKE },
     riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
-      { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
+      { ingredientId: "carved-chicken", qty: 2 }, { ingredientId: "bens-chicken-rice", qty: 1 },
       { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
-    yoghurtSnack: { ...YOGHURT },
+    yoghurtSnack: { ...PB_TOAST },
     main: { name: "Basa + Chicken Rice + Veg", items: [
       { ingredientId: "basa", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
       { ingredientId: "veg-florets", qty: 1 },
@@ -58,10 +67,10 @@ const DEFAULT_DAYS = [
   { id: "day2", label: "Day 2 — Salmon", meals: {
     shake: { ...SHAKE },
     riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
-      { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
+      { ingredientId: "carved-chicken", qty: 2 }, { ingredientId: "bens-chicken-rice", qty: 1 },
       { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
-    yoghurtSnack: { ...YOGHURT },
+    yoghurtSnack: { ...PB_TOAST },
     main: { name: "Salmon + Potatoes + Veg", items: [
       { ingredientId: "salmon", qty: 1 }, { ingredientId: "baby-potatoes", qty: 1 },
       { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
@@ -92,7 +101,7 @@ const DEFAULT_DAYS = [
   }},
 ];
 
-const DATA_VERSION = 3;
+const DATA_VERSION = 4;
 const DEFAULT_TARGETS = { calories: 2800, protein: 150, carbs: 320, fat: 85 };
 const CATEGORY_LABELS = { protein: "Proteins", carb: "Carbs", dairy: "Dairy", fat: "Fats", supplement: "Supplements", other: "Other" };
 const SLOT_ORDER = ["shake", "riceSnack", "yoghurtSnack", "main"];
