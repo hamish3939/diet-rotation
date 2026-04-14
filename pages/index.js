@@ -31,8 +31,7 @@ const DEFAULT_INGREDIENTS = [
 const SHAKE = { name: "Protein Shake", items: [
   { ingredientId: "plant-protein", qty: 1, displayNote: "5 tbsp" },
   { ingredientId: "banana", qty: 1 },
-  { ingredientId: "hp-almond-milk", qty: 1 },
-  { ingredientId: "frozen-berries", qty: 1 },
+  { ingredientId: "hp-almond-milk", qty: 2 },
   { ingredientId: "spinach", qty: 1 },
   { ingredientId: "creatine", qty: 1 },
   { ingredientId: "chia-seeds", qty: 1 },
