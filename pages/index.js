@@ -9,25 +9,25 @@ const DEFAULT_INGREDIENTS = [
   { id: "carved-chicken", name: "Carved Roast Chicken", shopName: "Coles Free Range Chicken Breast Carved Roast 200g", brand: "Coles FR (200g pk)", servingLabel: "½ pack · 100g", servingGrams: 100, protein: 24, carbs: 3, fat: 1.5, calories: 113, category: "protein", pricePerPack: 9, packServings: 2 },
   { id: "bens-protein-rice", name: "Protein+ Lentil Rice", shopName: "Ben's Original Protein+ Lentils Turmeric & Brown Rice 180g", brand: "Ben's Original (180g)", servingLabel: "whole pouch", servingGrams: 180, protein: 7, carbs: 52, fat: 4, calories: 272, category: "carb", pricePerPack: 3.5, packServings: 1 },
   { id: "bens-chicken-rice", name: "Savoury Chicken Rice", shopName: "Ben's Original Savoury Chicken Flavour Rice 250g", brand: "Ben's Original (250g)", servingLabel: "whole pouch", servingGrams: 250, protein: 8, carbs: 75, fat: 6, calories: 385, category: "carb", pricePerPack: 3.5, packServings: 1 },
-  { id: "baby-potatoes", name: "Baby Potatoes Herb Butter", shopName: "Coles Kitchen Vegetables Baby Potatoes Herb Butter 400g", brand: "Coles Kitchen (400g)", servingLabel: "whole pack", servingGrams: 400, protein: 8, carbs: 42, fat: 11, calories: 316, category: "carb", pricePerPack: 5.5, packServings: 1 },
+  { id: "baby-potatoes", name: "Baby Potatoes", shopName: "Coles Washed Baby Potatoes 1kg", brand: "Coles (1kg bag)", servingLabel: "½ bag · 500g", servingGrams: 500, protein: 10, carbs: 86, fat: 0, calories: 385, category: "carb", pricePerPack: 4.8, packServings: 2 },
   { id: "veg-florets", name: "Carrot & Broccoli Florets", shopName: "Coles Kitchen Carrot and Broccoli Florets 150g", brand: "Coles Kitchen (150g)", servingLabel: "whole pack", servingGrams: 150, protein: 3, carbs: 9, fat: 0.5, calories: 50, category: "carb", pricePerPack: 4, packServings: 1 },
-  { id: "avofresh", name: "Avofresh Hint of Lemon", shopName: "Avofresh Tube Hint of Lemon 160g", brand: "Avofresh (160g tube)", servingLabel: "¼ tube · 40g", servingGrams: 40, protein: 1, carbs: 0, fat: 9, calories: 83, category: "fat", pricePerPack: 6, packServings: 4 },
+  { id: "evoo", name: "Extra Virgin Olive Oil", shopName: "Extra Virgin Olive Oil 1L", brand: "Generic", servingLabel: "1 tbsp · 15ml", servingGrams: 14, protein: 0, carbs: 0, fat: 14, calories: 120, category: "fat", pricePerPack: 10, packServings: 66, daily: true },
   { id: "cocobella", name: "Coconut Yoghurt Vanilla", shopName: "Cocobella Coconut Yoghurt Vanilla 500g", brand: "Cocobella (500g tub)", servingLabel: "½ tub · 250g", servingGrams: 250, protein: 3, carbs: 20, fat: 25, calories: 338, category: "dairy", pricePerPack: 7, packServings: 2 },
   { id: "carmans", name: "Oat Clusters Honey Crunch", shopName: "Carman's Aussie Oat Clusters Honey Crunch 450g", brand: "Carman's (450g)", servingLabel: "1 cup · ~50g", servingGrams: 50, protein: 4, carbs: 33, fat: 5, calories: 200, category: "carb", pricePerPack: 8.9, packServings: 9 },
   { id: "banana", name: "Banana", shopName: "Banana", brand: "Fresh", servingLabel: "1 medium", servingGrams: 120, protein: 1, carbs: 27, fat: 0, calories: 105, category: "carb", pricePerPack: 1, packServings: 1 },
   { id: "frozen-berries", name: "Frozen Mixed Berries", shopName: "Coles Frozen Mixed Berries 500g", brand: "Coles (500g bag)", servingLabel: "½ bag · 250g", servingGrams: 250, protein: 2, carbs: 33, fat: 0, calories: 150, category: "carb", pricePerPack: 5, packServings: 2 },
   { id: "hp-almond-milk", name: "High Protein Almond Milk", shopName: "Sanitarium So Good High Protein Almond Milk 1L", brand: "So Good (1L)", servingLabel: "250ml", servingGrams: 250, protein: 10, carbs: 1, fat: 5.5, calories: 97, category: "dairy", pricePerPack: 5, packServings: 4 },
-  { id: "plant-protein", name: "Plant Protein Powder", shopName: "Plant Protein Powder", brand: "Generic", servingLabel: "1 scoop · 30g", servingGrams: 30, protein: 20, carbs: 2, fat: 1, calories: 120, category: "supplement", pricePerPack: 45, packServings: 30, daily: true },
+  { id: "plant-protein", name: "Plant Protein Powder", shopName: "Plant Protein Powder", brand: "Generic", servingLabel: "1 serve · 5 tbsp · 44g", servingGrams: 44, protein: 31.5, carbs: 5.6, fat: 3.5, calories: 176, category: "supplement", pricePerPack: 45, packServings: 30, daily: true },
   { id: "creatine", name: "Creatine Monohydrate", shopName: "Creatine Monohydrate", brand: "Generic", servingLabel: "1 scoop · 5g", servingGrams: 5, protein: 0, carbs: 0, fat: 0, calories: 0, category: "supplement", pricePerPack: 30, packServings: 60, daily: true },
   { id: "peanut-butter", name: "Peanut Butter", shopName: "Peanut Butter", brand: "Generic", servingLabel: "1 tbsp · 16g", servingGrams: 16, protein: 4, carbs: 3, fat: 8, calories: 95, category: "fat", pricePerPack: 5, packServings: 25 },
   { id: "zero-drink", name: "Zero Soft Drink", shopName: "Fanta Zero / Coke Zero / Sprite Zero 6-Pack Minis", brand: "Fanta/Coke/Sprite", servingLabel: "2 mini cans", servingGrams: 500, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 9, packServings: 3 },
-  { id: "spinach", name: "Baby Spinach", shopName: "Coles Baby Spinach 120g", brand: "Coles (120g bag)", servingLabel: "big handful · 60g", servingGrams: 60, protein: 2, carbs: 1, fat: 0, calories: 14, category: "carb", pricePerPack: 3, packServings: 2 },
+  { id: "spinach", name: "Frozen Chopped Spinach", shopName: "Birds Eye Frozen Chopped Spinach 250g", brand: "Birds Eye (250g)", servingLabel: "1 portion · ~40g", servingGrams: 40, protein: 1, carbs: 1, fat: 0, calories: 9, category: "carb", pricePerPack: 2.8, packServings: 6 },
   { id: "gyg-bowl", name: "GYG Bowl", shopName: "Guzman y Gomez Bowl", brand: "Guzman y Gomez", servingLabel: "custom order", servingGrams: 480, protein: 44, carbs: 74, fat: 30, calories: 760, category: "other", pricePerPack: 18, packServings: 1, note: "Dual protein: slow cooked + ground beef. Chimi mayo instead of cheese. No sour cream." },
   { id: "vanilla-essence", name: "Vanilla Essence", shopName: "Vanilla Essence", brand: "Generic", servingLabel: "", servingGrams: 0, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 0, packServings: 1, daily: true },
 ];
 
 const SHAKE = { name: "Protein Shake", items: [
-  { ingredientId: "plant-protein", qty: 3 },
+  { ingredientId: "plant-protein", qty: 1, displayNote: "5 tbsp" },
   { ingredientId: "banana", qty: 1 },
   { ingredientId: "hp-almond-milk", qty: 1 },
   { ingredientId: "frozen-berries", qty: 1 },
@@ -45,9 +45,9 @@ const YOGHURT = { name: "Yoghurt Bowl", items: [
 const DEFAULT_DAYS = [
   { id: "day1", label: "Day 1 — Basa", meals: {
     shake: { ...SHAKE },
-    riceSnack: { name: "Chicken + Chicken Rice + Avo + Veg", items: [
+    riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
       { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
-      { ingredientId: "avofresh", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
     yoghurtSnack: { ...YOGHURT },
     main: { name: "Basa + Chicken Rice + Veg", items: [
@@ -57,33 +57,33 @@ const DEFAULT_DAYS = [
   }},
   { id: "day2", label: "Day 2 — Salmon", meals: {
     shake: { ...SHAKE },
-    riceSnack: { name: "Chicken + Chicken Rice + Avo + Veg", items: [
+    riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
       { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
-      { ingredientId: "avofresh", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
     yoghurtSnack: { ...YOGHURT },
     main: { name: "Salmon + Potatoes + Veg", items: [
       { ingredientId: "salmon", qty: 1 }, { ingredientId: "baby-potatoes", qty: 1 },
-      { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
   }},
   { id: "day3", label: "Day 3 — Steak", meals: {
     shake: { ...SHAKE },
-    riceSnack: { name: "Tuna + Lentil Rice + Avo + Veg", items: [
+    riceSnack: { name: "Tuna + Lentil Rice + EVOO + Veg", items: [
       { ingredientId: "sirena-lite", qty: 1 }, { ingredientId: "bens-protein-rice", qty: 1 },
-      { ingredientId: "avofresh", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
     yoghurtSnack: { ...YOGHURT },
     main: { name: "Steak + Potatoes + Veg", items: [
       { ingredientId: "steak", qty: 1 }, { ingredientId: "baby-potatoes", qty: 1 },
-      { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
   }},
   { id: "day4", label: "Day 4 — GYG", meals: {
     shake: { ...SHAKE },
-    riceSnack: { name: "Tuna + Lentil Rice + Avo + Veg", items: [
+    riceSnack: { name: "Tuna + Lentil Rice + EVOO + Veg", items: [
       { ingredientId: "sirena-lite", qty: 1 }, { ingredientId: "bens-protein-rice", qty: 1 },
-      { ingredientId: "avofresh", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
     yoghurtSnack: { ...YOGHURT },
     main: { name: "GYG Bowl", items: [
@@ -92,8 +92,8 @@ const DEFAULT_DAYS = [
   }},
 ];
 
-const DATA_VERSION = 2;
-const DEFAULT_TARGETS = { calories: 2800, protein: 170, carbs: 320, fat: 85 };
+const DATA_VERSION = 3;
+const DEFAULT_TARGETS = { calories: 2800, protein: 150, carbs: 320, fat: 85 };
 const CATEGORY_LABELS = { protein: "Proteins", carb: "Carbs", dairy: "Dairy", fat: "Fats", supplement: "Supplements", other: "Other" };
 const SLOT_ORDER = ["shake", "riceSnack", "yoghurtSnack", "main"];
 const mono = "'Space Mono', monospace";
@@ -146,7 +146,7 @@ function MealCard({meal,I}) {
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13,fontFamily:sans,color:t2,padding:"5px 0",borderTop:idx>0?`1px solid ${br2}`:"none"}}>
               <div style={{display:"flex",alignItems:"baseline",gap:6,minWidth:0}}>
                 <span style={{flexShrink:0}}>{item.qty>1?`${item.qty}× `:""}{ing.name}</span>
-                {showPortion && <span style={{fontSize:11,color:t3,fontFamily:mono,flexShrink:0}}>{ing.servingLabel}</span>}
+                {showPortion && <span style={{fontSize:11,color:t3,fontFamily:mono,flexShrink:0}}>{item.displayNote ? `${ing.servingLabel} (${item.displayNote})` : ing.servingLabel}</span>}
               </div>
               <span style={{color:t3,fontFamily:mono,fontSize:12,flexShrink:0,marginLeft:8}}>{Math.round(ing.calories*item.qty)||""}</span>
             </div>
@@ -251,8 +251,8 @@ function ShoppingList({days,I}) {
       })}
       <div style={{marginTop:24,paddingTop:16,borderTop:`1px solid ${br1}`}}>
         <div style={{fontSize:11,fontFamily:mono,textTransform:"uppercase",letterSpacing:"0.08em",color:t3,marginBottom:12}}>Keep on Hand</div>
-        {["Plant Protein Powder","Creatine Monohydrate","Herbamare Seasoning","Pepper Steak Seasoning","Olive Oil Spray","Vanilla Essence"].map(name=>(
-          <div key={name} style={{padding:"7px 0",fontSize:13,fontFamily:sans,color:t1}}>{name}</div>
+        {I.filter(i=>i.daily).map(ing=>(
+          <div key={ing.id} style={{padding:"7px 0",fontSize:13,fontFamily:sans,color:t1}}>{ing.name}</div>
         ))}
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 0",borderTop:`2px solid ${br1}`,marginTop:20,fontFamily:mono}}>
