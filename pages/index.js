@@ -15,7 +15,6 @@ const DEFAULT_INGREDIENTS = [
   { id: "cocobella", name: "Coconut Yoghurt Vanilla", shopName: "Cocobella Coconut Yoghurt Vanilla 500g", brand: "Cocobella (500g tub)", servingLabel: "½ tub · 250g", servingGrams: 250, protein: 3, carbs: 20, fat: 25, calories: 338, category: "dairy", pricePerPack: 7, packServings: 2 },
   { id: "carmans", name: "Oat Clusters Honey Crunch", shopName: "Carman's Aussie Oat Clusters Honey Crunch 450g", brand: "Carman's (450g)", servingLabel: "1 cup · ~50g", servingGrams: 50, protein: 4, carbs: 33, fat: 5, calories: 200, category: "carb", pricePerPack: 8.9, packServings: 9 },
   { id: "banana", name: "Banana", shopName: "Banana", brand: "Fresh", servingLabel: "1 medium", servingGrams: 120, protein: 1, carbs: 27, fat: 0, calories: 105, category: "carb", pricePerPack: 1, packServings: 1 },
-  { id: "frozen-berries", name: "Frozen Mixed Berries", shopName: "Coles Frozen Mixed Berries 500g", brand: "Coles (500g bag)", servingLabel: "½ bag · 250g", servingGrams: 250, protein: 2, carbs: 33, fat: 0, calories: 150, category: "carb", pricePerPack: 5, packServings: 2 },
   { id: "hp-almond-milk", name: "High Protein Almond Milk", shopName: "Sanitarium So Good High Protein Almond Milk 1L", brand: "So Good (1L)", servingLabel: "250ml", servingGrams: 250, protein: 10, carbs: 1, fat: 5.5, calories: 97, category: "dairy", pricePerPack: 5, packServings: 4 },
   { id: "plant-protein", name: "Plant Protein Powder", shopName: "Plant Protein Powder", brand: "Generic", servingLabel: "1 serve · 5 tbsp · 44g", servingGrams: 44, protein: 31.5, carbs: 5.6, fat: 3.5, calories: 176, category: "supplement", pricePerPack: 45, packServings: 30, daily: true },
   { id: "creatine", name: "Creatine Monohydrate", shopName: "Creatine Monohydrate", brand: "Generic", servingLabel: "1 scoop · 5g", servingGrams: 5, protein: 0, carbs: 0, fat: 0, calories: 0, category: "supplement", pricePerPack: 30, packServings: 60, daily: true },
@@ -25,6 +24,7 @@ const DEFAULT_INGREDIENTS = [
   { id: "gyg-bowl", name: "GYG Bowl", shopName: "Guzman y Gomez Bowl", brand: "Guzman y Gomez", servingLabel: "custom order", servingGrams: 480, protein: 44, carbs: 74, fat: 30, calories: 760, category: "other", pricePerPack: 18, packServings: 1, note: "Dual protein: slow cooked + ground beef. Chimi mayo instead of cheese. No sour cream." },
   { id: "chia-seeds", name: "Black Chia Seeds", shopName: "Coles Black Chia Mix 200g", brand: "Coles (200g)", servingLabel: "1 tbsp · 12g", servingGrams: 12, protein: 2, carbs: 5, fat: 4, calories: 58, category: "supplement", pricePerPack: 5, packServings: 16, daily: true },
   { id: "hp-bread", name: "High Protein Bread", shopName: "Abbott's Bakery High Protein Soy Chickpea & Quinoa 700g", brand: "Abbott's (700g)", servingLabel: "1 slice", servingGrams: 47, protein: 6, carbs: 16, fat: 1.5, calories: 100, category: "carb", pricePerPack: 5.80, packServings: 15 },
+  { id: "nuttlex", name: "Nuttlex Original", shopName: "Nuttlex Original Spread 500g", brand: "Nuttlex (500g)", servingLabel: "1 tsp · 5g", servingGrams: 5, protein: 0, carbs: 0, fat: 3, calories: 29, category: "fat", pricePerPack: 4.5, packServings: 100, daily: true },
   { id: "vanilla-essence", name: "Vanilla Essence", shopName: "Vanilla Essence", brand: "Generic", servingLabel: "", servingGrams: 0, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 0, packServings: 1, daily: true },
 ];
 
@@ -72,7 +72,7 @@ const DEFAULT_DAYS = [
     yoghurtSnack: { ...PB_TOAST },
     main: { name: "Salmon + Potatoes + Veg", items: [
       { ingredientId: "salmon", qty: 1 }, { ingredientId: "baby-potatoes", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "nuttlex", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
   }},
   { id: "day3", label: "Day 3 — Steak", meals: {
@@ -84,7 +84,7 @@ const DEFAULT_DAYS = [
     yoghurtSnack: { ...YOGHURT },
     main: { name: "Steak + Potatoes + Veg", items: [
       { ingredientId: "steak", qty: 1 }, { ingredientId: "baby-potatoes", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "nuttlex", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
     ]},
   }},
   { id: "day4", label: "Day 4 — GYG", meals: {
@@ -100,7 +100,7 @@ const DEFAULT_DAYS = [
   }},
 ];
 
-const DATA_VERSION = 4;
+const DATA_VERSION = 5;
 const DEFAULT_TARGETS = { calories: 2800, protein: 150, carbs: 320, fat: 85 };
 const CATEGORY_LABELS = { protein: "Proteins", carb: "Carbs", dairy: "Dairy", fat: "Fats", supplement: "Supplements", other: "Other" };
 const SLOT_ORDER = ["shake", "riceSnack", "yoghurtSnack", "main"];
