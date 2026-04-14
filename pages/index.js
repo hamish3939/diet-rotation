@@ -10,7 +10,8 @@ const DEFAULT_INGREDIENTS = [
   { id: "bens-protein-rice", name: "Protein+ Lentil Rice", shopName: "Ben's Original Protein+ Lentils Turmeric & Brown Rice 180g", brand: "Ben's Original (180g)", servingLabel: "whole pouch", servingGrams: 180, protein: 7, carbs: 52, fat: 4, calories: 272, category: "carb", pricePerPack: 3.5, packServings: 1 },
   { id: "bens-chicken-rice", name: "Savoury Chicken Rice", shopName: "Ben's Original Savoury Chicken Flavour Rice 250g", brand: "Ben's Original (250g)", servingLabel: "whole pouch", servingGrams: 250, protein: 8, carbs: 75, fat: 6, calories: 385, category: "carb", pricePerPack: 3.5, packServings: 1 },
   { id: "baby-potatoes", name: "Baby Potatoes", shopName: "Coles Washed Baby Potatoes 1kg", brand: "Coles (1kg bag)", servingLabel: "½ bag · 500g", servingGrams: 500, protein: 10, carbs: 86, fat: 0, calories: 385, category: "carb", pricePerPack: 4.8, packServings: 2 },
-  { id: "veg-florets", name: "Carrot & Broccoli Florets", shopName: "Coles Kitchen Carrot and Broccoli Florets 150g", brand: "Coles Kitchen (150g)", servingLabel: "whole pack", servingGrams: 150, protein: 3, carbs: 9, fat: 0.5, calories: 50, category: "carb", pricePerPack: 4, packServings: 1 },
+  { id: "frozen-veg-green", name: "Green Mixed Vegetables", shopName: "Coles Frozen Green Mixed Vegetables 1kg", brand: "Coles (1kg)", servingLabel: "1 serve · ~285g", servingGrams: 285, protein: 6, carbs: 11, fat: 1, calories: 76, category: "carb", pricePerPack: 6.00, packServings: 3.5 },
+  { id: "frozen-veg-classic", name: "Carrot Corn & Peas", shopName: "Coles Frozen Carrot Corn & Peas 1kg", brand: "Coles (1kg)", servingLabel: "1 serve · ~285g", servingGrams: 285, protein: 5, carbs: 17, fat: 0.5, calories: 80, category: "carb", pricePerPack: 4.20, packServings: 3.5 },
   { id: "evoo", name: "Extra Virgin Olive Oil", shopName: "Extra Virgin Olive Oil 1L", brand: "Generic", servingLabel: "1 tbsp · 15ml", servingGrams: 14, protein: 0, carbs: 0, fat: 14, calories: 120, category: "fat", pricePerPack: 10, packServings: 66, daily: true },
   { id: "cocobella", name: "Coconut Yoghurt Vanilla", shopName: "Cocobella Coconut Yoghurt Vanilla 500g", brand: "Cocobella (500g tub)", servingLabel: "½ tub · 250g", servingGrams: 250, protein: 3, carbs: 20, fat: 25, calories: 338, category: "dairy", pricePerPack: 7, packServings: 2 },
   { id: "carmans", name: "Oat Clusters Honey Crunch", shopName: "Carman's Aussie Oat Clusters Honey Crunch 450g", brand: "Carman's (450g)", servingLabel: "1 cup · ~50g", servingGrams: 50, protein: 4, carbs: 33, fat: 5, calories: 200, category: "carb", pricePerPack: 8.9, packServings: 9 },
@@ -23,6 +24,7 @@ const DEFAULT_INGREDIENTS = [
   { id: "spinach", name: "Frozen Chopped Spinach", shopName: "Birds Eye Frozen Chopped Spinach 250g", brand: "Birds Eye (250g)", servingLabel: "1 portion · ~40g", servingGrams: 40, protein: 1, carbs: 1, fat: 0, calories: 9, category: "carb", pricePerPack: 2.8, packServings: 6 },
   { id: "gyg-bowl", name: "GYG Bowl", shopName: "Guzman y Gomez Bowl", brand: "Guzman y Gomez", servingLabel: "custom order", servingGrams: 480, protein: 44, carbs: 74, fat: 30, calories: 760, category: "other", pricePerPack: 18, packServings: 1, note: "Dual protein: slow cooked + ground beef. Chimi mayo instead of cheese. No sour cream." },
   { id: "chia-seeds", name: "Black Chia Seeds", shopName: "Coles Black Chia Mix 200g", brand: "Coles (200g)", servingLabel: "1 tbsp · 12g", servingGrams: 12, protein: 2, carbs: 5, fat: 4, calories: 58, category: "supplement", pricePerPack: 5, packServings: 16, daily: true },
+  { id: "kiwi", name: "Gold Kiwifruit", shopName: "Coles Gold Kiwifruit 1 Each", brand: "Coles", servingLabel: "1 medium", servingGrams: 75, protein: 1, carbs: 12, fat: 0, calories: 50, category: "carb", pricePerPack: 1.80, packServings: 1 },
   { id: "hp-bread", name: "High Protein Bread", shopName: "Abbott's Bakery High Protein Soy Chickpea & Quinoa 700g", brand: "Abbott's (700g)", servingLabel: "1 slice", servingGrams: 47, protein: 6, carbs: 16, fat: 1.5, calories: 100, category: "carb", pricePerPack: 5.80, packServings: 15 },
   { id: "nuttlex", name: "Nuttlex Original", shopName: "Nuttlex Original Spread 500g", brand: "Nuttlex (500g)", servingLabel: "1 tsp · 5g", servingGrams: 5, protein: 0, carbs: 0, fat: 3, calories: 29, category: "fat", pricePerPack: 4.5, packServings: 100, daily: true },
   { id: "vanilla-essence", name: "Vanilla Essence", shopName: "Vanilla Essence", brand: "Generic", servingLabel: "", servingGrams: 0, protein: 0, carbs: 0, fat: 0, calories: 0, category: "other", pricePerPack: 0, packServings: 1, daily: true },
@@ -39,9 +41,10 @@ const SHAKE = { name: "Protein Shake", items: [
 ]};
 
 const PB_TOAST = { name: "PB Toast + Banana", items: [
-  { ingredientId: "hp-bread", qty: 2 },
+  { ingredientId: "hp-bread", qty: 3 },
   { ingredientId: "peanut-butter", qty: 2 },
   { ingredientId: "banana", qty: 1 },
+  { ingredientId: "kiwi", qty: 1 },
 ]};
 
 const YOGHURT = { name: "Yoghurt Bowl", items: [
@@ -55,43 +58,43 @@ const DEFAULT_DAYS = [
     shake: { ...SHAKE },
     riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
       { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "frozen-veg-green", qty: 1 },
     ]},
-    yoghurtSnack: { ...PB_TOAST },
+    yoghurtSnack: { ...YOGHURT },
     main: { name: "Basa + Chicken Rice + Veg", items: [
       { ingredientId: "basa", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
-      { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "frozen-veg-classic", qty: 1 },
     ]},
   }},
   { id: "day2", label: "Day 2 — Salmon", meals: {
     shake: { ...SHAKE },
-    riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
-      { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+    riceSnack: { name: "Tuna + Lentil Rice + EVOO + Veg", items: [
+      { ingredientId: "sirena-lite", qty: 1 }, { ingredientId: "bens-protein-rice", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "frozen-veg-green", qty: 1 },
     ]},
     yoghurtSnack: { ...PB_TOAST },
     main: { name: "Salmon + Potatoes + Veg", items: [
       { ingredientId: "salmon", qty: 1 }, { ingredientId: "baby-potatoes", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "nuttlex", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "nuttlex", qty: 1 }, { ingredientId: "frozen-veg-classic", qty: 1 },
     ]},
   }},
   { id: "day3", label: "Day 3 — Steak", meals: {
     shake: { ...SHAKE },
     riceSnack: { name: "Tuna + Lentil Rice + EVOO + Veg", items: [
       { ingredientId: "sirena-lite", qty: 1 }, { ingredientId: "bens-protein-rice", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "frozen-veg-green", qty: 1 },
     ]},
-    yoghurtSnack: { ...YOGHURT },
+    yoghurtSnack: { ...PB_TOAST },
     main: { name: "Steak + Potatoes + Veg", items: [
       { ingredientId: "steak", qty: 1 }, { ingredientId: "baby-potatoes", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "nuttlex", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "nuttlex", qty: 1 }, { ingredientId: "frozen-veg-classic", qty: 1 },
     ]},
   }},
   { id: "day4", label: "Day 4 — GYG", meals: {
     shake: { ...SHAKE },
-    riceSnack: { name: "Tuna + Lentil Rice + EVOO + Veg", items: [
-      { ingredientId: "sirena-lite", qty: 1 }, { ingredientId: "bens-protein-rice", qty: 1 },
-      { ingredientId: "evoo", qty: 1 }, { ingredientId: "veg-florets", qty: 1 },
+    riceSnack: { name: "Chicken + Chicken Rice + EVOO + Veg", items: [
+      { ingredientId: "carved-chicken", qty: 1 }, { ingredientId: "bens-chicken-rice", qty: 1 },
+      { ingredientId: "evoo", qty: 1 }, { ingredientId: "frozen-veg-green", qty: 1 },
     ]},
     yoghurtSnack: { ...YOGHURT },
     main: { name: "GYG Bowl", items: [
@@ -100,7 +103,7 @@ const DEFAULT_DAYS = [
   }},
 ];
 
-const DATA_VERSION = 5;
+const DATA_VERSION = 6;
 const DEFAULT_TARGETS = { calories: 2800, protein: 150, carbs: 320, fat: 85 };
 const CATEGORY_LABELS = { protein: "Proteins", carb: "Carbs", dairy: "Dairy", fat: "Fats", supplement: "Supplements", other: "Other" };
 const SLOT_ORDER = ["shake", "riceSnack", "yoghurtSnack", "main"];
