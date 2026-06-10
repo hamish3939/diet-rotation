@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
+import retailerData from "../data/retailer-products.json";
 
 /* ──────────────────────────────────────────────────────────
    ONE DAY. Swappable proteins.
@@ -98,6 +99,7 @@ const DEFAULT_STATE = {
   snack: "tuna",
   main: "steak",
   carb: "potato",
+  shopRetailer: "woolworths",
   checked: {},
   bw: 81,
   bf: 20,
@@ -117,6 +119,7 @@ const readSavedState = () => {
       snack: validKey(SNACK, parsed.snack, DEFAULT_STATE.snack),
       main: validKey(MAIN, parsed.main, DEFAULT_STATE.main),
       carb: validKey(CARB, parsed.carb, DEFAULT_STATE.carb),
+      shopRetailer: validKey(retailerData.retailers, parsed.shopRetailer, DEFAULT_STATE.shopRetailer),
       checked: parsed.checked && typeof parsed.checked === "object" ? parsed.checked : DEFAULT_STATE.checked,
       bw: Number.isFinite(parsed.bw) ? parsed.bw : DEFAULT_STATE.bw,
       bf: Number.isFinite(parsed.bf) ? parsed.bf : DEFAULT_STATE.bf,
@@ -134,36 +137,16 @@ const writeSavedState = (state) => {
   } catch (e) {}
 };
 
-// ── Shopping list (full product names) ──────────────────────
-const SHOP = [
-  { sec: "Shake", rows: [
-    { n: "Nature's Way Instant Natural Protein Chocolate 400g", q: "70g (4 tbsp) / day", price: 18 },
-    { n: "So Good High Protein Almond Milk 1L", q: "500ml / day", price: 5 },
-    { n: "Frozen baby spinach (portions)", q: "1 portion / day", price: 4 },
-    { n: "Creatine monohydrate", q: "tub", price: 30 },
-  ]},
-  { sec: "Snack bowl", rows: [
-    { n: "Macro Brown Rice & Red Lentils Middle Eastern 250g", q: "1 pouch / day", price: 2.7 },
-    { n: "Sirena Lite Tuna in Oil 95g", q: "if tuna — 1 can", price: 3 },
-    { n: "Shredded chicken 150g pack", q: "if chicken — 1 pack", price: 6 },
-    { n: "Woolworths Frozen Mixed Vegetables 500g", q: "250g snack + 250g main", price: 4 },
-  ]},
-  { sec: "Main meal", rows: [
-    { n: "Coles Porterhouse Steak ~180g", q: "if steak", price: 9 },
-    { n: "Coles Tasmanian Salmon Skin Off 280g", q: "if salmon", price: 15 },
-    { n: "Guzman y Gomez bowl", q: "if GYG (eat out)", price: 18 },
-    { n: "GYG beef & cheese taco", q: "if GYG — 1 with the bowl", price: 3 },
-    { n: "Baby / chat potatoes (loose)", q: "carb — 500g increments", price: 3 },
-    { n: "Macro Microwave Rice 250g pouches", q: "carb — whole pouches", price: 5 },
-    { n: "Nuttelex buttery spread", q: "½ tbsp w/ potato days", price: 5 },
-    { n: "A.Vogel Herbamare Original 125g", q: "steak/salmon seasoning", price: 8 },
-  ]},
-  { sec: "Yoghurt bowl", rows: [
-    { n: "Cocobella Coconut Yoghurt 500g (rotating flavours)", q: "½ tub / day", price: 7 },
-    { n: "Oat clusters / granola (any brand on sale) ~450g", q: "1–2 cups / day", price: 6 },
-    { n: "Bananas (loose)", q: "2–3 / day (shake + bowl)", price: 4 },
-  ]},
-];
+const RETAILER_LABELS = { woolworths: "Woolies", coles: "Coles" };
+const RETAILER_ORDER = ["woolworths", "coles"];
+const groupShoppingRows = (rows) =>
+  rows.reduce((groups, row) => {
+    const sec = row.section || "Other";
+    if (!groups.some((group) => group.sec === sec)) groups.push({ sec, rows: [] });
+    groups.find((group) => group.sec === sec).rows.push(row);
+    return groups;
+  }, []);
+const shoppingKey = (retailer, row) => `${retailer}:${row.id}`;
 
 // ── UI bits ─────────────────────────────────────────────────
 function MacroTile({ label, val, target, unit, color, isLimit }) {
@@ -311,6 +294,7 @@ export default function DietDashboard() {
   const [snack, setSnack] = useState(DEFAULT_STATE.snack);
   const [main, setMain] = useState(DEFAULT_STATE.main);
   const [carb, setCarb] = useState(DEFAULT_STATE.carb);
+  const [shopRetailer, setShopRetailer] = useState(DEFAULT_STATE.shopRetailer);
   const [checked, setChecked] = useState(DEFAULT_STATE.checked);
 
   // body comp
@@ -327,6 +311,7 @@ export default function DietDashboard() {
       setSnack(s.snack);
       setMain(s.main);
       setCarb(s.carb);
+      setShopRetailer(s.shopRetailer);
       setChecked(s.checked);
       setBw(s.bw);
       setBf(s.bf);
@@ -337,8 +322,8 @@ export default function DietDashboard() {
   }, []);
 
   useEffect(() => {
-    if (loaded) writeSavedState({ tab, snack, main, carb, checked, bw, bf, rate, log });
-  }, [tab, snack, main, carb, checked, bw, bf, rate, log, loaded]);
+    if (loaded) writeSavedState({ tab, snack, main, carb, shopRetailer, checked, bw, bf, rate, log });
+  }, [tab, snack, main, carb, shopRetailer, checked, bw, bf, rate, log, loaded]);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -408,10 +393,16 @@ export default function DietDashboard() {
 
   const day = sum([shakeT, yogT, snackT, mainT]);
 
-  const shopTotal = SHOP.reduce((a, s) => a + s.rows.reduce((b, r) => b + r.price, 0), 0);
-  const shoppingCount = useMemo(() => SHOP.reduce((a, s) => a + s.rows.length, 0), []);
-  const checkedCount = useMemo(() => Object.values(checked).filter(Boolean).length, [checked]);
-  const clearShopping = () => setChecked({});
+  const shoppingRows = retailerData.retailers[shopRetailer] || [];
+  const shoppingGroups = useMemo(() => groupShoppingRows(shoppingRows), [shoppingRows]);
+  const shopTotal = useMemo(() => shoppingRows.reduce((a, r) => a + (Number.isFinite(r.price) ? r.price : 0), 0), [shoppingRows]);
+  const shoppingCount = shoppingRows.length;
+  const checkedCount = useMemo(
+    () => shoppingRows.filter((r) => checked[shoppingKey(shopRetailer, r)]).length,
+    [checked, shopRetailer, shoppingRows]
+  );
+  const clearShopping = () =>
+    setChecked((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(`${shopRetailer}:`))));
 
   return (
     <>
@@ -592,8 +583,18 @@ export default function DietDashboard() {
       {tab === "shopping" && (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
-            <div style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>
-              Tap to tick off. {checkedCount}/{shoppingCount} packed.
+            <div>
+              <div style={{ display: "flex", gap: 6, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: 4, marginBottom: 8 }}>
+                {RETAILER_ORDER.map((key) => (
+                  <button key={key} onClick={() => setShopRetailer(key)} style={{
+                    fontFamily: SANS, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "7px 14px", borderRadius: 6,
+                    border: "none", color: shopRetailer === key ? C.bg : C.dim, background: shopRetailer === key ? C.text : "transparent",
+                  }}>{RETAILER_LABELS[key]}</button>
+                ))}
+              </div>
+              <div style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>
+                {RETAILER_LABELS[shopRetailer]} list · {checkedCount}/{shoppingCount} packed.
+              </div>
             </div>
             <button onClick={clearShopping} disabled={!checkedCount} style={{
               fontFamily: SANS, fontSize: 12, fontWeight: 600, cursor: checkedCount ? "pointer" : "default",
@@ -602,12 +603,13 @@ export default function DietDashboard() {
               opacity: checkedCount ? 1 : 0.55,
             }}>Reset ticks</button>
           </div>
-          {SHOP.map((s) => (
+          {shoppingGroups.map((s) => (
             <div key={s.sec} style={{ marginBottom: 18 }}>
               <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", color: C.protein, marginBottom: 8 }}>{s.sec}</div>
               {s.rows.map((r) => {
-                const key = s.sec + r.n;
+                const key = shoppingKey(shopRetailer, r);
                 const on = checked[key];
+                const priceLabel = Number.isFinite(r.price) ? `$${r.price.toFixed(2)}` : "N/A";
                 return (
                   <button key={key} onClick={() => setChecked((p) => ({ ...p, [key]: !p[key] }))} style={{
                     display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", textAlign: "left",
@@ -620,11 +622,18 @@ export default function DietDashboard() {
                         display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: C.bg, fontWeight: 700,
                       }}>{on ? "✓" : ""}</span>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontFamily: SANS, fontSize: 13.5, color: on ? C.faint : C.text, textDecoration: on ? "line-through" : "none" }}>{r.n}</div>
-                        <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint }}>{r.q}</div>
+                        <div style={{ fontFamily: SANS, fontSize: 13.5, color: on ? C.faint : C.text, textDecoration: on ? "line-through" : "none" }}>{r.name}</div>
+                        <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint }}>
+                          {r.quantity} · {r.pack} · {r.matchType}
+                        </div>
+                        {r.notes && (
+                          <div style={{ fontFamily: SANS, fontSize: 11.5, color: C.dim, marginTop: 3 }}>
+                            {r.notes}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div style={{ fontFamily: MONO, fontSize: 12.5, color: C.dim, paddingLeft: 10, whiteSpace: "nowrap" }}>${r.price.toFixed(2)}</div>
+                    <div style={{ fontFamily: MONO, fontSize: 12.5, color: C.dim, paddingLeft: 10, whiteSpace: "nowrap" }}>{priceLabel}</div>
                   </button>
                 );
               })}
@@ -635,7 +644,7 @@ export default function DietDashboard() {
             <span style={{ fontFamily: MONO, fontSize: 15, color: C.protein }}>${shopTotal.toFixed(2)}</span>
           </div>
           <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, marginTop: 6 }}>
-            Buying one protein per slot lands a typical day around $20–28.
+            Retailer data comes from data/diet-retailer-equivalents.xlsx.
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "sync:retailers": "python3 scripts/sync_retailer_data.py",
     "build": "next build",
     "start": "next start"
   },
