@@ -2,10 +2,14 @@
   "name": "Diet Rotation",
   "short_name": "Diet Rotation",
   "description": "Diet rotation meal planner and macro tracker",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0e0e11",
   "theme_color": "#0e0e11",
+  "categories": ["health", "fitness", "food"],
   "icons": [
     {
       "src": "/icon-192.png",

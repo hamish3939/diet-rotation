@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 
 /* ──────────────────────────────────────────────────────────
@@ -44,7 +44,7 @@ const powderItem = (n) => ({
   cal: Math.round(POWDER_TBSP.cal * n), fib: Math.round(POWDER_TBSP.fib * n), sug: Math.round(POWDER_TBSP.sug * n), sod: Math.round(POWDER_TBSP.sod * n),
 });
 const YOG_BASE = [
-  { name: "Cocobella +Protein yoghurt", note: "½ tub · 250g", p: 16, c: 26, f: 21, cal: 339, fib: 2, sug: 13, sod: 43 },
+  { name: "Cocobella coconut yoghurt", note: "½ tub · 250g · rotating flavours", p: 3, c: 20, f: 25, cal: 338, fib: 2, sug: 13, sod: 30 },
 ];
 // oat clusters flex 1–2 cups when extra carbs are needed to reach ~3k
 const clustersItem = (n) => ({ name: "Oat clusters (any brand)", note: `${n} cup${n > 1 ? "s" : ""} · ${50 * n}g`, p: 4 * n, c: 32 * n, f: 6 * n, cal: 210 * n, fib: 4 * n, sug: 7 * n, sod: 45 * n });
@@ -92,24 +92,46 @@ const TARGETS = { cal: 3050, p: 170, c: 400, f: 85, fib: 38, sug: 30, sod: 2000,
 const GOAL = { w: 85, bf: 20 };   // 85kg @ 20% → 68kg lean / 17kg fat
 const START_W = 81;                // journey start if no log yet
 
-// Browser persistence for the deployed app.
-const store = {
-  async get(k) {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const r = window.localStorage.getItem(k);
-        return r ? JSON.parse(r) : null;
-      }
-    } catch (e) {}
+const APP_STATE_KEY = "diet-rotation:state:v2";
+const DEFAULT_STATE = {
+  tab: "day",
+  snack: "tuna",
+  main: "steak",
+  carb: "potato",
+  checked: {},
+  bw: 81,
+  bf: 20,
+  rate: 0.3,
+  log: [],
+};
+
+const validKey = (obj, key, fallback) => (Object.prototype.hasOwnProperty.call(obj, key) ? key : fallback);
+const readSavedState = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(APP_STATE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      tab: validKey({ day: true, body: true, shopping: true }, parsed.tab, DEFAULT_STATE.tab),
+      snack: validKey(SNACK, parsed.snack, DEFAULT_STATE.snack),
+      main: validKey(MAIN, parsed.main, DEFAULT_STATE.main),
+      carb: validKey(CARB, parsed.carb, DEFAULT_STATE.carb),
+      checked: parsed.checked && typeof parsed.checked === "object" ? parsed.checked : DEFAULT_STATE.checked,
+      bw: Number.isFinite(parsed.bw) ? parsed.bw : DEFAULT_STATE.bw,
+      bf: Number.isFinite(parsed.bf) ? parsed.bf : DEFAULT_STATE.bf,
+      rate: Number.isFinite(parsed.rate) ? parsed.rate : DEFAULT_STATE.rate,
+      log: Array.isArray(parsed.log) ? parsed.log : DEFAULT_STATE.log,
+    };
+  } catch (e) {
     return null;
-  },
-  async set(k, v) {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(k, JSON.stringify(v));
-      }
-    } catch (e) {}
-  },
+  }
+};
+const writeSavedState = (state) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
+  } catch (e) {}
 };
 
 // ── Shopping list (full product names) ──────────────────────
@@ -137,7 +159,7 @@ const SHOP = [
     { n: "A.Vogel Herbamare Original 125g", q: "steak/salmon seasoning", price: 8 },
   ]},
   { sec: "Yoghurt bowl", rows: [
-    { n: "Cocobella +Protein Vanilla Coconut Yoghurt 500g", q: "½ tub / day", price: 7.5 },
+    { n: "Cocobella Coconut Yoghurt 500g (rotating flavours)", q: "½ tub / day", price: 7 },
     { n: "Oat clusters / granola (any brand on sale) ~450g", q: "1–2 cups / day", price: 6 },
     { n: "Bananas (loose)", q: "2–3 / day (shake + bowl)", price: 4 },
   ]},
@@ -285,34 +307,46 @@ function ProgressLine({ label, from, to, val, color }) {
 }
 
 export default function DietDashboard() {
-  const [tab, setTab] = useState("day");
-  const [snack, setSnack] = useState("tuna");
-  const [main, setMain] = useState("steak");
-  const [carb, setCarb] = useState("potato");
-  const [checked, setChecked] = useState({});
+  const [tab, setTab] = useState(DEFAULT_STATE.tab);
+  const [snack, setSnack] = useState(DEFAULT_STATE.snack);
+  const [main, setMain] = useState(DEFAULT_STATE.main);
+  const [carb, setCarb] = useState(DEFAULT_STATE.carb);
+  const [checked, setChecked] = useState(DEFAULT_STATE.checked);
 
   // body comp
-  const [bw, setBw] = useState(81);
-  const [bf, setBf] = useState(20);
-  const [rate, setRate] = useState(0.3);
-  const [log, setLog] = useState([]);
+  const [bw, setBw] = useState(DEFAULT_STATE.bw);
+  const [bf, setBf] = useState(DEFAULT_STATE.bf);
+  const [rate, setRate] = useState(DEFAULT_STATE.rate);
+  const [log, setLog] = useState(DEFAULT_STATE.log);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const s = await store.get("bodycomp");
-      if (s) {
-        if (s.bw != null) setBw(s.bw);
-        if (s.bf != null) setBf(s.bf);
-        if (s.rate != null) setRate(s.rate);
-        if (Array.isArray(s.log)) setLog(s.log);
-      }
-      setLoaded(true);
-    })();
+    const s = readSavedState();
+    if (s) {
+      setTab(s.tab);
+      setSnack(s.snack);
+      setMain(s.main);
+      setCarb(s.carb);
+      setChecked(s.checked);
+      setBw(s.bw);
+      setBf(s.bf);
+      setRate(s.rate);
+      setLog(s.log);
+    }
+    setLoaded(true);
   }, []);
+
   useEffect(() => {
-    if (loaded) store.set("bodycomp", { bw, bf, rate, log });
-  }, [bw, bf, rate, log, loaded]);
+    if (loaded) writeSavedState({ tab, snack, main, carb, checked, bw, bf, rate, log });
+  }, [tab, snack, main, carb, checked, bw, bf, rate, log, loaded]);
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      const register = () => navigator.serviceWorker.register("/sw.js").catch(() => {});
+      if (document.readyState === "complete") register();
+      else window.addEventListener("load", register, { once: true });
+    }
+  }, []);
 
   const lean = bw * (1 - bf / 100);
   const fat = bw * (bf / 100);
@@ -375,13 +409,19 @@ export default function DietDashboard() {
   const day = sum([shakeT, yogT, snackT, mainT]);
 
   const shopTotal = SHOP.reduce((a, s) => a + s.rows.reduce((b, r) => b + r.price, 0), 0);
+  const shoppingCount = useMemo(() => SHOP.reduce((a, s) => a + s.rows.length, 0), []);
+  const checkedCount = useMemo(() => Object.values(checked).filter(Boolean).length, [checked]);
+  const clearShopping = () => setChecked({});
 
   return (
     <>
     <Head>
       <title>Diet Dashboard</title>
+      <meta name="description" content="Saved diet rotation, macro targets, body comp check-ins, and shopping list." />
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       <meta name="theme-color" content={C.bg} />
+      <link rel="manifest" href="/manifest.json" />
+      <link rel="apple-touch-icon" href="/icon-192.png" />
     </Head>
     <div style={{ background: C.bg, minHeight: "100vh", padding: "22px 18px 40px", fontFamily: SANS }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');`}</style>
@@ -391,6 +431,9 @@ export default function DietDashboard() {
         <div>
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", color: C.protein }}>One day · swappable</div>
           <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 700, color: C.text, marginTop: 2 }}>Diet</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, color: C.faint, marginTop: 5 }}>
+            {loaded ? "Saved on this device" : "Loading saved state"}
+          </div>
         </div>
         <div style={{ display: "flex", gap: 6, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: 4 }}>
           {[["day", "Day"], ["body", "Body comp"], ["shopping", "Shopping list"]].map(([k, l]) => (
@@ -548,8 +591,16 @@ export default function DietDashboard() {
 
       {tab === "shopping" && (
         <div>
-          <div style={{ fontFamily: MONO, fontSize: 12, color: C.dim, marginBottom: 14 }}>
-            Tap to tick off. Proteins listed for all swaps — buy what you're running.
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
+            <div style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>
+              Tap to tick off. {checkedCount}/{shoppingCount} packed.
+            </div>
+            <button onClick={clearShopping} disabled={!checkedCount} style={{
+              fontFamily: SANS, fontSize: 12, fontWeight: 600, cursor: checkedCount ? "pointer" : "default",
+              padding: "7px 10px", borderRadius: 7, color: checkedCount ? C.text : C.faint,
+              background: checkedCount ? C.surface : "transparent", border: `1px solid ${C.border}`,
+              opacity: checkedCount ? 1 : 0.55,
+            }}>Reset ticks</button>
           </div>
           {SHOP.map((s) => (
             <div key={s.sec} style={{ marginBottom: 18 }}>
