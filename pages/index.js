@@ -143,33 +143,6 @@ const SHOP = [
   ]},
 ];
 
-const wooliesSearch = (q) => `https://www.woolworths.com.au/shop/search/products?searchTerm=${encodeURIComponent(q)}`;
-const gygLink = "https://www.guzmanygomez.com.au/menu/";
-const dollars = (n) => `$${n.toFixed(2)}`;
-const oneDec = (n) => Number.isInteger(n) ? `${n}` : n.toFixed(1);
-
-const PRODUCT_TABLE = [
-  { sec: "Shake", name: "Nature's Way Instant Natural Protein Chocolate 400g", link: wooliesSearch("Nature's Way Instant Natural Protein Chocolate 400g"), container: "400g tub", serving: "35g / 2 tbsp", servings: 400 / 35, price: 18, p: 26.4, cal: 136 },
-  { sec: "Shake", name: "So Good High Protein Almond Milk 1L", link: wooliesSearch("So Good High Protein Almond Milk 1L"), container: "1L carton", serving: "500ml", servings: 2, price: 5, p: 20, cal: 194 },
-  { sec: "Shake", name: "Frozen baby spinach", link: wooliesSearch("frozen baby spinach"), container: "500g bag", serving: "100g", servings: 5, price: 4, p: 3, cal: 25 },
-  { sec: "Shake", name: "Creatine monohydrate", link: wooliesSearch("creatine monohydrate"), container: "500g tub", serving: "5g", servings: 100, price: 30, p: 0, cal: 0 },
-  { sec: "Snack", name: "Macro Brown Rice & Red Lentils Middle Eastern 250g", link: wooliesSearch("Macro Brown Rice Red Lentils Middle Eastern 250g"), container: "250g pouch", serving: "1 pouch", servings: 1, price: 2.7, p: 12, cal: 350 },
-  { sec: "Snack", name: "Sirena Lite Tuna in Oil 95g", link: wooliesSearch("Sirena Lite Tuna in Oil 95g"), container: "95g can", serving: "70g drained", servings: 1, price: 3, p: 18, cal: 88 },
-  { sec: "Snack", name: "Shredded chicken 150g pack", link: wooliesSearch("shredded chicken 150g"), container: "150g pack", serving: "1 pack", servings: 1, price: 6, p: 32, cal: 170 },
-  { sec: "Snack", name: "Woolworths Frozen Mixed Vegetables 500g", link: wooliesSearch("Woolworths Frozen Mixed Vegetables 500g"), container: "500g bag", serving: "250g", servings: 2, price: 4, p: 5, cal: 100 },
-  { sec: "Main", name: "Woolworths porterhouse steak", link: wooliesSearch("Woolworths porterhouse steak"), container: "180g serve", serving: "180g", servings: 1, price: 9, p: 46, cal: 400 },
-  { sec: "Main", name: "Tasmanian salmon skin off", link: wooliesSearch("Tasmanian salmon skin off 280g Woolworths"), container: "280g serve", serving: "280g", servings: 1, price: 15, p: 54, cal: 580 },
-  { sec: "Main", name: "Baby / chat potatoes loose", link: wooliesSearch("baby chat potatoes"), container: "500g", serving: "500g", servings: 1, price: 3, p: 10, cal: 360 },
-  { sec: "Main", name: "Macro Microwave Rice pouches", link: wooliesSearch("Macro Microwave Rice 250g pouches"), container: "2 x 250g", serving: "250g pouch", servings: 2, price: 5, p: 10, cal: 410 },
-  { sec: "Main", name: "Nuttelex buttery spread", link: wooliesSearch("Nuttelex buttery spread"), container: "500g tub", serving: "10g / 1/2 tbsp", servings: 50, price: 5, p: 0, cal: 50 },
-  { sec: "Main", name: "A.Vogel Herbamare Original 125g", link: wooliesSearch("A.Vogel Herbamare Original 125g"), container: "125g shaker", serving: "seasoning", servings: 125, price: 8, p: 0, cal: 0 },
-  { sec: "Yoghurt", name: "Cocobella +Protein Vanilla Coconut Yoghurt 500g", link: wooliesSearch("Cocobella Protein Vanilla Coconut Yoghurt 500g"), container: "500g tub", serving: "250g / 1/2 tub", servings: 2, price: 7.5, p: 16, cal: 339 },
-  { sec: "Yoghurt", name: "Oat clusters / granola", link: wooliesSearch("oat clusters granola"), container: "450g bag", serving: "50g / 1 cup", servings: 9, price: 6, p: 4, cal: 210 },
-  { sec: "Yoghurt", name: "Bananas loose", link: wooliesSearch("bananas loose"), container: "1kg loose", serving: "1 medium", servings: 8.5, price: 4, p: 1, cal: 105 },
-  { sec: "Eat out", name: "Guzman y Gomez bowl", link: gygLink, container: "restaurant item", serving: "1 bowl", servings: 1, price: 18, p: 44, cal: 760 },
-  { sec: "Eat out", name: "GYG beef & cheese taco", link: gygLink, container: "restaurant item", serving: "1 taco", servings: 1, price: 3, p: 12, cal: 210 },
-];
-
 // ── UI bits ─────────────────────────────────────────────────
 function MacroTile({ label, val, target, unit, color, isLimit }) {
   const pct = Math.round((val / target) * 100);
@@ -606,46 +579,6 @@ export default function DietDashboard() {
               })}
             </div>
           ))}
-          <div style={{ marginTop: 22, marginBottom: 18 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
-              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", color: C.protein }}>Product economics</div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, color: C.faint }}>Woolies links use product searches where stockcodes are not confirmed.</div>
-            </div>
-            <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 9, background: C.surface }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 920 }}>
-                <thead>
-                  <tr>
-                    {["Item", "Container", "Serving", "Protein", "Cost / serve", "Protein / container", "Cost / container", "Link"].map((h) => (
-                      <th key={h} style={{ textAlign: "left", padding: "10px 12px", borderBottom: `1px solid ${C.border}`, fontFamily: MONO, fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", color: C.faint }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PRODUCT_TABLE.map((r) => {
-                    const serveCost = r.price / r.servings;
-                    const containerProtein = r.p * r.servings;
-                    return (
-                      <tr key={`${r.sec}-${r.name}`} style={{ borderTop: `1px solid ${C.surface2}` }}>
-                        <td style={{ padding: "10px 12px", verticalAlign: "top" }}>
-                          <div style={{ fontFamily: SANS, fontSize: 13, color: C.text }}>{r.name}</div>
-                          <div style={{ fontFamily: MONO, fontSize: 10.5, color: C.faint }}>{r.sec} - {r.cal} cal / serve</div>
-                        </td>
-                        <td style={{ padding: "10px 12px", fontFamily: MONO, fontSize: 11.5, color: C.dim, whiteSpace: "nowrap" }}>{r.container}</td>
-                        <td style={{ padding: "10px 12px", fontFamily: MONO, fontSize: 11.5, color: C.dim, whiteSpace: "nowrap" }}>{r.serving}</td>
-                        <td style={{ padding: "10px 12px", fontFamily: MONO, fontSize: 11.5, color: C.protein, whiteSpace: "nowrap" }}>{oneDec(r.p)}g / serve</td>
-                        <td style={{ padding: "10px 12px", fontFamily: MONO, fontSize: 11.5, color: C.text, whiteSpace: "nowrap" }}>{dollars(serveCost)}</td>
-                        <td style={{ padding: "10px 12px", fontFamily: MONO, fontSize: 11.5, color: C.dim, whiteSpace: "nowrap" }}>{oneDec(containerProtein)}g</td>
-                        <td style={{ padding: "10px 12px", fontFamily: MONO, fontSize: 11.5, color: C.text, whiteSpace: "nowrap" }}>{dollars(r.price)}</td>
-                        <td style={{ padding: "10px 12px", fontFamily: MONO, fontSize: 11.5, whiteSpace: "nowrap" }}>
-                          <a href={r.link} target="_blank" rel="noreferrer" style={{ color: C.carbs, textDecoration: "none" }}>{r.sec === "Eat out" ? "GYG" : "Woolies"}</a>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
           <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.border}`, paddingTop: 14, marginTop: 4 }}>
             <span style={{ fontFamily: SANS, fontSize: 14, color: C.text, fontWeight: 600 }}>Full basket (all options)</span>
             <span style={{ fontFamily: MONO, fontSize: 15, color: C.protein }}>${shopTotal.toFixed(2)}</span>
