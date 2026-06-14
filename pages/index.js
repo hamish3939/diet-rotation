@@ -100,6 +100,7 @@ const DEFAULT_STATE = {
   main: "steak",
   carb: "potato",
   shopRetailer: "woolworths",
+  shopDays: 7,
   checked: {},
   bw: 81,
   bf: 20,
@@ -120,6 +121,7 @@ const readSavedState = () => {
       main: validKey(MAIN, parsed.main, DEFAULT_STATE.main),
       carb: validKey(CARB, parsed.carb, DEFAULT_STATE.carb),
       shopRetailer: validKey(retailerData.retailers, parsed.shopRetailer, DEFAULT_STATE.shopRetailer),
+      shopDays: Number.isInteger(parsed.shopDays) && parsed.shopDays > 0 ? parsed.shopDays : DEFAULT_STATE.shopDays,
       checked: parsed.checked && typeof parsed.checked === "object" ? parsed.checked : DEFAULT_STATE.checked,
       bw: Number.isFinite(parsed.bw) ? parsed.bw : DEFAULT_STATE.bw,
       bf: Number.isFinite(parsed.bf) ? parsed.bf : DEFAULT_STATE.bf,
@@ -147,6 +149,87 @@ const groupShoppingRows = (rows) =>
     return groups;
   }, []);
 const shoppingKey = (retailer, row) => `${retailer}:${row.id}`;
+
+// ── Shopping quantity model ──────────────────────────────────
+// Diet consumption (app logic) drives how much to buy; product name, price and
+// pack come from the spreadsheet. 1 in 3 dinners is Guzman, eaten out, so the
+// home-dinner ingredients (steak/salmon, carb side, dinner veg) scale down.
+//   pool  "all"  every day · "home" only home-cooked dinner days · "gyg" eaten out
+//   share rotation split key — two options share a pool's days evenly
+//   count discrete units (cans/pouches/cuts) · each loose produce · else g/ml by weight
+const SHOP_GYG_RATIO = 3;
+const BUY_MODEL = {
+  "Nature's Way protein (choc)": { pool: "all", perDay: 70 },
+  "So Good HP almond milk":      { pool: "all", perDay: 500 },
+  "Banana":                      { pool: "all", each: true, perDay: 3, packEach: 6, word: "banana" },
+  "Frozen baby spinach":         { pool: "all", perDay: 100, packG: 250 },
+  "Creatine":                    { staple: true },
+  "Macro brown rice & lentils":  { pool: "all", count: true, perDay: 1, word: "pouch" },
+  "Sirena Lite tuna":            { pool: "all", share: "snackTuna", count: true, perDay: 1, word: "can" },
+  "Shredded chicken":            { pool: "all", share: "snackChicken", count: true, perDay: 1, word: "pack" },
+  "Frozen mixed vegetables":     { pools: [["all", 250], ["home", 250]] },
+  "Porterhouse steak":           { pool: "home", share: "mainSteak", count: true, perDay: 1, word: "cut" },
+  "Tasmanian salmon":            { pool: "home", share: "mainSalmon", count: true, perDay: 1, word: "fillet" },
+  "Baby potatoes + Nuttelex":    { pool: "home", share: "carbPotato", perDay: 500, packG: 1000 },
+  "Nuttelex buttery spread":     { staple: true, needs: "carbPotato" },
+  "Macro microwave rice":        { pool: "home", share: "carbRice", count: true, perDay: 2, word: "pouch" },
+  "A.Vogel Herbamare Original":  { staple: true },
+  "Cocobella coconut yoghurt":   { pool: "all", perDay: 250 },
+  "Oat clusters / granola":      { pool: "all", perDay: 100 },
+  "Guzman bowl":                 { gyg: true },
+  "Beef & cheese taco":          { gyg: true },
+};
+const packSizeFromText = (pack) => {
+  const m = String(pack).match(/(\d+(?:\.\d+)?)\s*(kg|g|l|ml)\b/i);
+  if (!m) return null;
+  const u = m[2].toLowerCase();
+  return parseFloat(m[1]) * (u === "kg" || u === "l" ? 1000 : 1);
+};
+const plural = (word, n) => (n === 1 ? word : word + (/(ch|sh|s|x)$/.test(word) ? "es" : "s"));
+const shopDayCtx = (rawDays) => {
+  const days = Math.max(1, Math.round(rawDays) || 1);
+  const gygDays = Math.round(days / SHOP_GYG_RATIO);
+  const homeDays = days - gygDays;
+  return {
+    days, gygDays, homeDays,
+    splits: {
+      snackTuna: Math.ceil(days / 2), snackChicken: Math.floor(days / 2),
+      mainSteak: Math.ceil(homeDays / 2), mainSalmon: Math.floor(homeDays / 2),
+      carbPotato: Math.ceil(homeDays / 2), carbRice: Math.floor(homeDays / 2),
+    },
+  };
+};
+const poolDays = (pool, ctx) => (pool === "all" ? ctx.days : pool === "home" ? ctx.homeDays : pool === "gyg" ? ctx.gygDays : 0);
+const computeBuy = (row, ctx) => {
+  const m = BUY_MODEL[row.appIngredient];
+  const price = Number.isFinite(row.price) ? row.price : null;
+  const buy = (packs, label) =>
+    packs > 0 ? { kind: "buy", packs, label, lineTotal: price != null ? +(price * packs).toFixed(2) : null }
+              : { kind: "skip", packs: 0, label: `Not needed for this shop`, lineTotal: null };
+  if (!m) return { kind: "info", label: row.quantity || "", lineTotal: null };
+  if (m.gyg) return { kind: "gyg", label: `Eaten out · ${ctx.gygDays} ${plural("day", ctx.gygDays)}`, lineTotal: null };
+  if (m.staple) {
+    if (m.needs && ctx.splits[m.needs] <= 0) return { kind: "skip", packs: 0, label: "Not needed for this shop", lineTotal: null };
+    return { kind: "staple", packs: 1, label: `1 × ${row.pack} · lasts the period`, lineTotal: price };
+  }
+  if (m.pools) {
+    const totalG = m.pools.reduce((a, [pool, g]) => a + g * poolDays(pool, ctx), 0);
+    const packG = packSizeFromText(row.pack) || 500;
+    return buy(Math.ceil(totalG / packG), `${Math.ceil(totalG / packG)} × ${row.pack}`);
+  }
+  const sdays = m.share ? ctx.splits[m.share] : poolDays(m.pool, ctx);
+  if (m.count) {
+    const packs = sdays * m.perDay;
+    return buy(packs, `${packs} ${plural(m.word, packs)}`);
+  }
+  if (m.each) {
+    const totalEach = sdays * m.perDay;
+    return buy(Math.ceil(totalEach / m.packEach), `≈ ${totalEach} ${plural(m.word, totalEach)}`);
+  }
+  const packG = m.packG || packSizeFromText(row.pack) || 1;
+  const packs = Math.ceil((sdays * m.perDay) / packG);
+  return buy(packs, `${packs} × ${row.pack}`);
+};
 
 // ── UI bits ─────────────────────────────────────────────────
 function MacroTile({ label, val, target, unit, color, isLimit }) {
@@ -295,6 +378,7 @@ export default function DietDashboard() {
   const [main, setMain] = useState(DEFAULT_STATE.main);
   const [carb, setCarb] = useState(DEFAULT_STATE.carb);
   const [shopRetailer, setShopRetailer] = useState(DEFAULT_STATE.shopRetailer);
+  const [shopDays, setShopDays] = useState(DEFAULT_STATE.shopDays);
   const [checked, setChecked] = useState(DEFAULT_STATE.checked);
 
   // body comp
@@ -312,6 +396,7 @@ export default function DietDashboard() {
       setMain(s.main);
       setCarb(s.carb);
       setShopRetailer(s.shopRetailer);
+      setShopDays(s.shopDays);
       setChecked(s.checked);
       setBw(s.bw);
       setBf(s.bf);
@@ -322,8 +407,8 @@ export default function DietDashboard() {
   }, []);
 
   useEffect(() => {
-    if (loaded) writeSavedState({ tab, snack, main, carb, shopRetailer, checked, bw, bf, rate, log });
-  }, [tab, snack, main, carb, shopRetailer, checked, bw, bf, rate, log, loaded]);
+    if (loaded) writeSavedState({ tab, snack, main, carb, shopRetailer, shopDays, checked, bw, bf, rate, log });
+  }, [tab, snack, main, carb, shopRetailer, shopDays, checked, bw, bf, rate, log, loaded]);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -395,11 +480,20 @@ export default function DietDashboard() {
 
   const shoppingRows = retailerData.retailers[shopRetailer] || [];
   const shoppingGroups = useMemo(() => groupShoppingRows(shoppingRows), [shoppingRows]);
-  const shopTotal = useMemo(() => shoppingRows.reduce((a, r) => a + (Number.isFinite(r.price) ? r.price : 0), 0), [shoppingRows]);
-  const shoppingCount = shoppingRows.length;
+  const shopCtx = useMemo(() => shopDayCtx(shopDays), [shopDays]);
+  const buys = useMemo(
+    () => Object.fromEntries(shoppingRows.map((r) => [r.id, computeBuy(r, shopCtx)])),
+    [shoppingRows, shopCtx]
+  );
+  const shopTotal = useMemo(() => shoppingRows.reduce((a, r) => a + (buys[r.id]?.lineTotal || 0), 0), [shoppingRows, buys]);
+  const buyableIds = useMemo(
+    () => shoppingRows.filter((r) => buys[r.id]?.kind === "buy" || buys[r.id]?.kind === "staple").map((r) => r.id),
+    [shoppingRows, buys]
+  );
+  const shoppingCount = buyableIds.length;
   const checkedCount = useMemo(
-    () => shoppingRows.filter((r) => checked[shoppingKey(shopRetailer, r)]).length,
-    [checked, shopRetailer, shoppingRows]
+    () => buyableIds.filter((id) => checked[`${shopRetailer}:${id}`]).length,
+    [checked, shopRetailer, buyableIds]
   );
   const clearShopping = () =>
     setChecked((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(`${shopRetailer}:`))));
@@ -603,17 +697,36 @@ export default function DietDashboard() {
               opacity: checkedCount ? 1 : 0.55,
             }}>Reset ticks</button>
           </div>
+          {/* day count → quantities scale to suit */}
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: C.text }}>Shopping for</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button onClick={() => setShopDays(Math.max(1, shopDays - 1))} style={stepBtn}>–</button>
+                <div style={{ fontFamily: MONO, fontSize: 22, color: C.text, minWidth: 78, textAlign: "center" }}>
+                  {shopDays}<span style={{ fontSize: 12, color: C.faint }}> {plural("day", shopDays)}</span>
+                </div>
+                <button onClick={() => setShopDays(shopDays + 1)} style={stepBtn}>+</button>
+              </div>
+            </div>
+            <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, marginTop: 8 }}>
+              {shopCtx.homeDays} home {plural("dinner", shopCtx.homeDays)} · {shopCtx.gygDays} GYG out (1 in {SHOP_GYG_RATIO}). Steak/salmon & potato/rice split evenly.
+            </div>
+          </div>
           {shoppingGroups.map((s) => (
             <div key={s.sec} style={{ marginBottom: 18 }}>
               <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", color: C.protein, marginBottom: 8 }}>{s.sec}</div>
               {s.rows.map((r) => {
                 const key = shoppingKey(shopRetailer, r);
                 const on = checked[key];
-                const priceLabel = Number.isFinite(r.price) ? `$${r.price.toFixed(2)}` : "N/A";
+                const buy = buys[r.id] || { kind: "info", label: r.quantity || "", lineTotal: null };
+                const muted = buy.kind === "skip" || buy.kind === "gyg" || buy.kind === "info";
+                const priceLabel = buy.lineTotal != null ? `$${buy.lineTotal.toFixed(2)}` : "—";
                 return (
                   <button key={key} onClick={() => setChecked((p) => ({ ...p, [key]: !p[key] }))} style={{
                     display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", textAlign: "left",
-                    background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: "11px 13px", marginBottom: 7, cursor: "pointer",
+                    background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: "11px 13px", marginBottom: 7,
+                    cursor: "pointer", opacity: muted ? 0.6 : 1,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
                       <span style={{
@@ -623,14 +736,9 @@ export default function DietDashboard() {
                       }}>{on ? "✓" : ""}</span>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontFamily: SANS, fontSize: 13.5, color: on ? C.faint : C.text, textDecoration: on ? "line-through" : "none" }}>{r.name}</div>
-                        <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint }}>
-                          {r.quantity} · {r.pack} · {r.matchType}
+                        <div style={{ fontFamily: MONO, fontSize: 11.5, color: muted ? C.faint : C.dim }}>
+                          {buy.label}
                         </div>
-                        {r.notes && (
-                          <div style={{ fontFamily: SANS, fontSize: 11.5, color: C.dim, marginTop: 3 }}>
-                            {r.notes}
-                          </div>
-                        )}
                       </div>
                     </div>
                     <div style={{ fontFamily: MONO, fontSize: 12.5, color: C.dim, paddingLeft: 10, whiteSpace: "nowrap" }}>{priceLabel}</div>
@@ -640,11 +748,11 @@ export default function DietDashboard() {
             </div>
           ))}
           <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.border}`, paddingTop: 14, marginTop: 4 }}>
-            <span style={{ fontFamily: SANS, fontSize: 14, color: C.text, fontWeight: 600 }}>Full basket (all options)</span>
+            <span style={{ fontFamily: SANS, fontSize: 14, color: C.text, fontWeight: 600 }}>Estimated basket · {shopDays} {plural("day", shopDays)}</span>
             <span style={{ fontFamily: MONO, fontSize: 15, color: C.protein }}>${shopTotal.toFixed(2)}</span>
           </div>
           <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, marginTop: 6 }}>
-            Retailer data comes from data/diet-retailer-equivalents.xlsx.
+            Quantities scale to the day count; 1 in {SHOP_GYG_RATIO} dinners is GYG (eaten out). Prices from data/diet-retailer-equivalents.xlsx.
           </div>
         </div>
       )}
