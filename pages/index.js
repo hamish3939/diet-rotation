@@ -9,16 +9,66 @@ import retailerData from "../data/retailer-products.json";
    Macros from the diet-rotation app + verified product panels.
    Fibre (g) and sodium (mg) added — sodium especially is a
    brand-variable estimate; treat as a guide, not gospel.
+
+   UI: blobitecture style — pure-monochrome white neumorphism.
+   No hue anywhere; depth comes from light + shadow only.
+   Helvetica Light for human text, Courier for // micro-labels.
    ────────────────────────────────────────────────────────── */
 
-const C = {
-  bg: "#0d0d0d", surface: "#151515", surface2: "#1c1c1c", border: "#2a2a2a",
-  text: "#f2f2f2", dim: "#8a8a8a", faint: "#565656",
-  protein: "#ff5c00", carbs: "#4a90d9", fat: "#e0a93b",
-  fibre: "#3fb27f", sodium: "#d97757", sugar: "#cf6a98", veg: "#84b54b", over: "#e5484d",
-};
-const MONO = "'Space Mono', ui-monospace, 'SFMono-Regular', monospace";
 const SANS = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+const MONO = "'Courier New', Courier, monospace";
+const BG = "#e9ebf1"; // literal for <meta theme-color>
+
+// semantic tokens (resolve to the :root custom properties in STYLES)
+const c = {
+  bg: "var(--bg)", ink: "var(--ink)",
+  tx: "var(--tx)", tx2: "var(--tx-2)", tx3: "var(--tx-3)",
+  line: "var(--line)", onInk: "var(--on-ink)",
+};
+// neumorphic shadow recipes (the signature)
+const SH = {
+  out: "var(--shadow-out)", outSm: "var(--shadow-out-sm)", hero: "var(--shadow-hero)",
+  in: "var(--shadow-in)", inSm: "var(--shadow-in-sm)", ink: "var(--shadow-ink)",
+};
+const card = { background: c.bg, borderRadius: 18, boxShadow: SH.out, padding: 20, marginBottom: 18 };
+
+const STYLES = `
+  :root{
+    --bg:#e9ebf1;--hi:#ffffff;--lo:#c2c6d4;--lo2:#cccfdc;
+    --ink:#0d0d0c;--tx:#5c5b66;--tx-2:#8b8a96;--tx-3:#a9a8b4;
+    --line:#d4d7e0;--on-ink:#ffffff;--focus-ring:rgba(13,13,12,.32);
+    --ease:cubic-bezier(.2,.7,.2,1);
+    --shadow-out:-7px -7px 16px var(--hi),7px 7px 16px var(--lo);
+    --shadow-out-sm:-4px -4px 9px var(--hi),4px 4px 9px var(--lo2);
+    --shadow-out-hover:-9px -9px 22px var(--hi),9px 9px 22px var(--lo);
+    --shadow-hero:-12px -12px 30px var(--hi),14px 14px 34px var(--lo);
+    --shadow-ink:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);
+    --shadow-ink-hover:9px 9px 22px var(--lo),-9px -9px 22px var(--hi);
+    --shadow-in:inset 5px 5px 11px var(--lo),inset -5px -5px 11px var(--hi);
+    --shadow-in-sm:inset 3px 3px 6px var(--lo),inset -3px -3px 6px var(--hi);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);-webkit-font-smoothing:antialiased;}
+  .b-btn{transition:transform .25s var(--ease),box-shadow .25s var(--ease);}
+  .b-btn[data-v="primary"]:hover:not(:disabled){transform:translateY(-3px);box-shadow:var(--shadow-ink-hover);}
+  .b-btn[data-v="ghost"]:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--shadow-out-hover);}
+  .b-btn[data-v="ghost"]:active:not(:disabled){transform:none;box-shadow:var(--shadow-in-sm);}
+  .b-step{transition:transform .18s var(--ease),box-shadow .18s var(--ease),color .18s var(--ease);}
+  .b-step:hover{transform:translateY(-1px);box-shadow:var(--shadow-out-hover);}
+  .b-step:active{transform:none;box-shadow:var(--shadow-in-sm)!important;color:var(--ink)!important;}
+  .b-row{transition:transform .25s var(--ease),box-shadow .25s var(--ease);}
+  .b-row:hover{transform:translateY(-2px);box-shadow:var(--shadow-out-hover);}
+  .b-row:active{transform:none;box-shadow:var(--shadow-in-sm);}
+  .b-seg{transition:color .2s var(--ease),box-shadow .2s var(--ease);}
+  .b-x{transition:color .18s var(--ease);}
+  .b-x:hover{color:var(--ink);}
+  button:focus-visible{outline:3px solid var(--focus-ring);outline-offset:3px;}
+  @media (prefers-reduced-motion:reduce){
+    .b-btn,.b-row,.b-step{transition:none!important;}
+    .b-btn:hover,.b-row:hover,.b-step:hover{transform:none!important;}
+    *{transition-duration:.001s!important;}
+  }
+`;
 
 // per-serving: p/c/f grams, cal kcal, fib grams, sug = ADDED sugar grams, sod mg, veg = vegetable grams
 const sum = (items) =>
@@ -159,11 +209,11 @@ const shoppingKey = (retailer, row) => `${retailer}:${row.id}`;
 //   count discrete units (cans/pouches/cuts) · each loose produce · else g/ml by weight
 const SHOP_GYG_RATIO = 3;
 const BUY_MODEL = {
-  "Nature's Way protein (choc)": { pool: "all", perDay: 70 },
+  "Nature's Way protein (choc)": { pool: "all", perDay: 70, keep: true },
   "So Good HP almond milk":      { pool: "all", perDay: 500 },
   "Banana":                      { pool: "all", each: true, perDay: 3, packEach: 6, word: "banana" },
   "Frozen baby spinach":         { pool: "all", perDay: 100, packG: 250 },
-  "Creatine":                    { staple: true },
+  "Creatine":                    { staple: true, keep: true },
   "Macro brown rice & lentils":  { pool: "all", count: true, perDay: 1, word: "pouch" },
   "Sirena Lite tuna":            { pool: "all", share: "snackTuna", count: true, perDay: 1, word: "can" },
   "Shredded chicken":            { pool: "all", share: "snackChicken", count: true, perDay: 1, word: "pack" },
@@ -171,9 +221,9 @@ const BUY_MODEL = {
   "Porterhouse steak":           { pool: "home", share: "mainSteak", count: true, perDay: 1, word: "cut" },
   "Tasmanian salmon":            { pool: "home", share: "mainSalmon", count: true, perDay: 1, word: "fillet" },
   "Baby potatoes + Nuttelex":    { pool: "home", share: "carbPotato", perDay: 500, packG: 1000 },
-  "Nuttelex buttery spread":     { staple: true, needs: "carbPotato" },
+  "Nuttelex buttery spread":     { staple: true, keep: true },
   "Macro microwave rice":        { pool: "home", share: "carbRice", count: true, perDay: 2, word: "pouch" },
-  "A.Vogel Herbamare Original":  { staple: true },
+  "A.Vogel Herbamare Original":  { staple: true, keep: true },
   "Cocobella coconut yoghurt":   { pool: "all", perDay: 250 },
   "Oat clusters / granola":      { pool: "all", perDay: 100 },
   "Guzman bowl":                 { gyg: true },
@@ -208,10 +258,7 @@ const computeBuy = (row, ctx) => {
               : { kind: "skip", packs: 0, label: `Not needed for this shop`, lineTotal: null };
   if (!m) return { kind: "info", label: row.quantity || "", lineTotal: null };
   if (m.gyg) return { kind: "gyg", label: `Eaten out · ${ctx.gygDays} ${plural("day", ctx.gygDays)}`, lineTotal: null };
-  if (m.staple) {
-    if (m.needs && ctx.splits[m.needs] <= 0) return { kind: "skip", packs: 0, label: "Not needed for this shop", lineTotal: null };
-    return { kind: "staple", packs: 1, label: `1 × ${row.pack} · lasts the period`, lineTotal: price };
-  }
+  if (m.staple) return { kind: "staple", packs: 1, label: `1 × ${row.pack}`, lineTotal: price };
   if (m.pools) {
     const totalG = m.pools.reduce((a, [pool, g]) => a + g * poolDays(pool, ctx), 0);
     const packG = packSizeFromText(row.pack) || 500;
@@ -232,66 +279,46 @@ const computeBuy = (row, ctx) => {
 };
 
 // ── UI bits ─────────────────────────────────────────────────
-function MacroTile({ label, val, target, unit, color, isLimit }) {
+// Courier "//" micro-label — the architect's annotation. Always lowercase.
+function Micro({ children, style }) {
+  return (
+    <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, letterSpacing: ".14em", color: c.tx2, ...style }}>
+      <span style={{ color: c.tx3 }}>{"// "}</span>{children}
+    </span>
+  );
+}
+
+function MacroTile({ label, val, target, unit, isLimit }) {
   const pct = Math.round((val / target) * 100);
   const over = isLimit && val > target;
-  const barColor = over ? C.over : color;
   return (
-    <div style={{ background: C.surface, border: `1px solid ${over ? C.over : C.border}`, borderRadius: 10, padding: "13px 15px", flex: "1 1 140px", minWidth: 0 }}>
-      <div style={{ fontFamily: SANS, fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: C.dim }}>{label}</div>
-      <div style={{ fontFamily: MONO, fontSize: 24, color: over ? C.over : C.text, lineHeight: 1.15, marginTop: 4 }}>
-        {val}<span style={{ fontSize: 12, color: C.faint }}>{unit}</span>
+    <div style={{ background: c.bg, borderRadius: 16, boxShadow: SH.out, padding: "15px 17px", flex: "1 1 140px", minWidth: 0 }}>
+      <Micro>{label}</Micro>
+      <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 30, color: c.ink, lineHeight: 1.05, letterSpacing: "-0.03em", marginTop: 9 }}>
+        {val}<span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 400, letterSpacing: 0, color: c.tx3 }}>{unit}</span>
       </div>
-      <div style={{ fontFamily: MONO, fontSize: 11, color: over ? C.over : C.faint, marginBottom: 8 }}>
-        {isLimit ? `limit ${target}${unit} · ${over ? `+${val - target}` : `${pct}%`}` : `/ ${target}${unit} · ${pct}%`}
+      <div style={{ fontFamily: MONO, fontSize: 11, color: over ? c.ink : c.tx2, margin: "5px 0 11px" }}>
+        {isLimit ? `limit ${target}${unit} · ${over ? `+${val - target} over` : `${pct}%`}` : `/ ${target}${unit} · ${pct}%`}
       </div>
-      <div style={{ height: 4, background: C.surface2, borderRadius: 4, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${Math.min(100, pct)}%`, background: barColor, transition: "width .25s ease" }} />
+      <div style={{ height: 8, borderRadius: 999, background: c.bg, boxShadow: SH.inSm, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${Math.min(100, pct)}%`, background: c.ink, borderRadius: 999, transition: "width .3s var(--ease)" }} />
       </div>
     </div>
   );
 }
 
-// stacked calorie bar segmented by macro kcal (P*4 / C*4 / F*9), normalised to maxCal
-function CompareRow({ label, m, selected, onClick, maxCal }) {
-  const pkc = m.p * 4, ckc = m.c * 4, fkc = m.f * 9;
-  const w = (m.cal / maxCal) * 100;
-  return (
-    <button onClick={onClick} style={{
-      display: "block", width: "100%", textAlign: "left", cursor: "pointer",
-      background: selected ? C.surface2 : "transparent",
-      border: `1px solid ${selected ? C.protein : C.border}`,
-      borderRadius: 9, padding: "11px 13px", marginBottom: 8, transition: "all .15s ease",
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: SANS, fontSize: 14, color: selected ? C.text : C.dim, fontWeight: 500 }}>
-          {selected ? "● " : "○ "}{label}
-        </span>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, color: C.dim }}>
-          {m.p}P · {m.c}C · {m.f}F · {m.cal}kcal · <span style={{ color: C.sodium }}>{m.sod}mg Na</span>
-        </span>
-      </div>
-      <div style={{ display: "flex", width: `${w}%`, height: 7, borderRadius: 4, overflow: "hidden", background: C.surface2 }}>
-        <div style={{ width: `${(pkc / m.cal) * 100}%`, background: C.protein }} />
-        <div style={{ width: `${(ckc / m.cal) * 100}%`, background: C.carbs }} />
-        <div style={{ width: `${(fkc / m.cal) * 100}%`, background: C.fat }} />
-      </div>
-    </button>
-  );
-}
-
 function MealCard({ title, time, items, totals, children }) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18, marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+    <div style={card}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14, gap: 10 }}>
         <div>
-          <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 600, color: C.text }}>{title}</div>
-          {time && <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", color: C.faint, marginTop: 2 }}>{time}</div>}
+          <div style={{ fontFamily: SANS, fontSize: 16, fontWeight: 400, color: c.ink, letterSpacing: "-0.02em" }}>{title}</div>
+          {time && <div style={{ marginTop: 5 }}><Micro style={{ fontWeight: 400, letterSpacing: ".1em" }}>{time}</Micro></div>}
         </div>
         {totals && (
-          <div style={{ fontFamily: MONO, fontSize: 12, color: C.dim, textAlign: "right" }}>
-            {Math.round(totals.p)}P · {Math.round(totals.c)}C · {Math.round(totals.f)}F<br />
-            <span style={{ color: C.faint }}>{Math.round(totals.cal)} kcal · {totals.sod}mg Na</span>
+          <div style={{ fontFamily: MONO, fontSize: 11.5, color: c.tx2, textAlign: "right", lineHeight: 1.55 }}>
+            {Math.round(totals.p)}p · {Math.round(totals.c)}c · {Math.round(totals.f)}f<br />
+            <span style={{ color: c.tx3 }}>{Math.round(totals.cal)} kcal · {totals.sod}mg na</span>
           </div>
         )}
       </div>
@@ -299,11 +326,11 @@ function MealCard({ title, time, items, totals, children }) {
       {items && (
         <div style={{ marginTop: 4 }}>
           {items.map((it, idx) => (
-            <div key={idx} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderTop: idx ? `1px solid ${C.surface2}` : "none" }}>
-              <div style={{ fontFamily: SANS, fontSize: 13.5, color: C.text }}>
-                {it.name} <span style={{ color: C.faint, fontSize: 12 }}>· {it.note}</span>
+            <div key={idx} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderTop: idx ? `1px solid ${c.line}` : "none" }}>
+              <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 400, color: c.tx }}>
+                {it.name} <span style={{ fontFamily: MONO, fontSize: 11, color: c.tx3 }}>· {it.note}</span>
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 11.5, color: C.dim, whiteSpace: "nowrap", paddingLeft: 10 }}>{it.cal}</div>
+              <div style={{ fontFamily: MONO, fontSize: 11.5, color: c.tx2, whiteSpace: "nowrap", paddingLeft: 10 }}>{it.cal}</div>
             </div>
           ))}
         </div>
@@ -312,19 +339,20 @@ function MealCard({ title, time, items, totals, children }) {
   );
 }
 
-function Segmented({ options, value, onChange }) {
+// recessed-well segmented control; the active segment is raised with ink text
+function Segmented({ options, value, onChange, full = false, style }) {
   return (
-    <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
+    <div style={{ display: full ? "flex" : "inline-flex", gap: 4, padding: 4, borderRadius: 999, background: c.bg, boxShadow: SH.inSm, ...style }}>
       {options.map((o) => {
         const on = value === o.key;
         return (
-          <button key={o.key} onClick={() => onChange(o.key)} style={{
-            fontFamily: SANS, fontSize: 13, fontWeight: 500, cursor: "pointer",
-            padding: "7px 14px", borderRadius: 8,
-            color: on ? C.bg : C.dim,
-            background: on ? C.protein : "transparent",
-            border: `1px solid ${on ? C.protein : C.border}`,
-            transition: "all .15s ease",
+          <button key={o.key} className="b-seg" onClick={() => onChange(o.key)} style={{
+            flex: full ? 1 : "0 0 auto",
+            fontFamily: SANS, fontSize: 13, fontWeight: on ? 500 : 400, cursor: "pointer",
+            padding: "8px 16px", borderRadius: 999, border: "none", whiteSpace: "nowrap",
+            color: on ? c.ink : c.tx2,
+            background: on ? c.bg : "transparent",
+            boxShadow: on ? SH.outSm : "none",
           }}>{o.label}</button>
         );
       })}
@@ -333,40 +361,40 @@ function Segmented({ options, value, onChange }) {
 }
 
 const stepBtn = {
-  fontFamily: MONO, fontSize: 18, lineHeight: 1, cursor: "pointer",
-  width: 30, height: 30, borderRadius: 7, color: C.dim,
-  background: C.surface2, border: `1px solid ${C.border}`,
+  fontFamily: MONO, fontSize: 20, lineHeight: 1, cursor: "pointer", flex: "none",
+  width: 44, height: 44, borderRadius: 12, color: c.tx,
+  background: c.bg, border: "none", boxShadow: SH.outSm,
 };
 function NumStepper({ label, value, set, step, unit }) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", flex: "1 1 150px" }}>
-      <div style={{ fontFamily: SANS, fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: C.dim, marginBottom: 8 }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <button onClick={() => set(+(Math.max(0, value - step)).toFixed(2))} style={stepBtn}>–</button>
-        <div style={{ fontFamily: MONO, fontSize: 22, color: C.text, flex: 1, textAlign: "center" }}>{value}<span style={{ fontSize: 12, color: C.faint }}>{unit}</span></div>
-        <button onClick={() => set(+(value + step).toFixed(2))} style={stepBtn}>+</button>
+    <div style={{ background: c.bg, borderRadius: 16, boxShadow: SH.out, padding: "15px 16px", flex: "1 1 150px" }}>
+      <div style={{ marginBottom: 11 }}><Micro>{label}</Micro></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button className="b-step" aria-label={`decrease ${label}`} onClick={() => set(+(Math.max(0, value - step)).toFixed(2))} style={stepBtn}>–</button>
+        <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 26, color: c.ink, flex: 1, textAlign: "center", letterSpacing: "-0.02em" }}>{value}<span style={{ fontFamily: MONO, fontSize: 12, color: c.tx3 }}>{unit}</span></div>
+        <button className="b-step" aria-label={`increase ${label}`} onClick={() => set(+(value + step).toFixed(2))} style={stepBtn}>+</button>
       </div>
     </div>
   );
 }
-function BodyStat({ label, val, unit, goal, color }) {
+function BodyStat({ label, val, unit, goal }) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "13px 15px", flex: "1 1 120px" }}>
-      <div style={{ fontFamily: SANS, fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: C.dim }}>{label}</div>
-      <div style={{ fontFamily: MONO, fontSize: 24, color: color || C.text, marginTop: 4 }}>{val}<span style={{ fontSize: 12, color: C.faint }}>{unit}</span></div>
-      <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, marginTop: 2 }}>goal {goal}{unit}</div>
+    <div style={{ background: c.bg, borderRadius: 16, boxShadow: SH.out, padding: "15px 16px", flex: "1 1 120px" }}>
+      <Micro>{label}</Micro>
+      <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 26, color: c.ink, marginTop: 9, letterSpacing: "-0.02em" }}>{val}<span style={{ fontFamily: MONO, fontSize: 12, color: c.tx3 }}>{unit}</span></div>
+      <div style={{ fontFamily: MONO, fontSize: 11, color: c.tx3, marginTop: 3 }}>goal {goal}{unit}</div>
     </div>
   );
 }
-function ProgressLine({ label, from, to, val, color }) {
+function ProgressLine({ label, from, to, val }) {
   const pct = to === from ? 100 : Math.max(0, Math.min(100, ((val - from) / (to - from)) * 100));
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 12, color: C.dim, marginBottom: 5 }}>
-        <span>{label}</span><span>{val.toFixed(1)} / {to} <span style={{ color: C.faint }}>({pct.toFixed(0)}%)</span></span>
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 11.5, color: c.tx2, marginBottom: 6 }}>
+        <span>{label}</span><span>{val.toFixed(1)} / {to} <span style={{ color: c.tx3 }}>({pct.toFixed(0)}%)</span></span>
       </div>
-      <div style={{ height: 6, background: C.surface2, borderRadius: 5, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: color, transition: "width .25s ease" }} />
+      <div style={{ height: 8, background: c.bg, borderRadius: 999, boxShadow: SH.inSm, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: c.ink, borderRadius: 999, transition: "width .3s var(--ease)" }} />
       </div>
     </div>
   );
@@ -469,7 +497,7 @@ export default function DietDashboard() {
   if (buildDay(carbCount, clusters, 1).total.cal < 2900) bananas = 2;
 
   const D = buildDay(carbCount, clusters, bananas);
-  const { mainItems, yoghurtItems, shakeItems, tbsp } = D;
+  const { mainItems, yoghurtItems, shakeItems } = D;
 
   const shakeT = sum(shakeItems);
   const yogT = sum(yoghurtItems);
@@ -479,13 +507,18 @@ export default function DietDashboard() {
   const day = sum([shakeT, yogT, snackT, mainT]);
 
   const shoppingRows = retailerData.retailers[shopRetailer] || [];
-  const shoppingGroups = useMemo(() => groupShoppingRows(shoppingRows), [shoppingRows]);
+  const isKeep = (r) => !!BUY_MODEL[r.appIngredient]?.keep;
+  const isGyg = (r) => !!BUY_MODEL[r.appIngredient]?.gyg; // eaten out — never on the shopping list
+  const mainRows = useMemo(() => shoppingRows.filter((r) => !isKeep(r) && !isGyg(r)), [shoppingRows]);
+  const keepRows = useMemo(() => shoppingRows.filter((r) => isKeep(r)), [shoppingRows]);
+  const shoppingGroups = useMemo(() => groupShoppingRows(mainRows), [mainRows]);
   const shopCtx = useMemo(() => shopDayCtx(shopDays), [shopDays]);
   const buys = useMemo(
     () => Object.fromEntries(shoppingRows.map((r) => [r.id, computeBuy(r, shopCtx)])),
     [shoppingRows, shopCtx]
   );
-  const shopTotal = useMemo(() => shoppingRows.reduce((a, r) => a + (buys[r.id]?.lineTotal || 0), 0), [shoppingRows, buys]);
+  const shopTotal = useMemo(() => mainRows.reduce((a, r) => a + (buys[r.id]?.lineTotal || 0), 0), [mainRows, buys]);
+  const keepTotal = useMemo(() => keepRows.reduce((a, r) => a + (buys[r.id]?.lineTotal || 0), 0), [keepRows, buys]);
   const buyableIds = useMemo(
     () => shoppingRows.filter((r) => buys[r.id]?.kind === "buy" || buys[r.id]?.kind === "staple").map((r) => r.id),
     [shoppingRows, buys]
@@ -498,70 +531,88 @@ export default function DietDashboard() {
   const clearShopping = () =>
     setChecked((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(`${shopRetailer}:`))));
 
+  const renderShopRow = (r) => {
+    const key = shoppingKey(shopRetailer, r);
+    const on = checked[key];
+    const buy = buys[r.id] || { kind: "info", label: r.quantity || "", lineTotal: null };
+    const muted = buy.kind === "skip" || buy.kind === "gyg" || buy.kind === "info";
+    const priceLabel = buy.lineTotal != null ? `$${buy.lineTotal.toFixed(2)}` : "—";
+    return (
+      <button key={key} className={on ? "" : "b-row"} onClick={() => setChecked((p) => ({ ...p, [key]: !p[key] }))} style={{
+        display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", textAlign: "left", gap: 10,
+        background: c.bg, borderRadius: 14, boxShadow: on ? SH.inSm : SH.outSm, padding: "13px 15px", marginBottom: 9,
+        cursor: "pointer", border: "none", opacity: muted ? 0.6 : 1,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
+          <span style={{
+            position: "relative", width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+            background: c.bg, boxShadow: on ? SH.outSm : SH.inSm,
+          }}>
+            {on && <span style={{ position: "absolute", left: 8.5, top: 4, width: 5, height: 10, border: "solid var(--ink)", borderWidth: "0 2.6px 2.6px 0", transform: "rotate(43deg)" }} />}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 400, color: on ? c.tx3 : c.ink, textDecoration: on ? "line-through" : "none" }}>{r.name}</div>
+            <div style={{ fontFamily: MONO, fontSize: 11, color: muted ? c.tx3 : c.tx2, marginTop: 2 }}>{(buy.label || "").toLowerCase()}</div>
+          </div>
+        </div>
+        <div style={{ fontFamily: MONO, fontSize: 12.5, color: c.tx2, paddingLeft: 10, whiteSpace: "nowrap" }}>{priceLabel}</div>
+      </button>
+    );
+  };
+
   return (
     <>
     <Head>
-      <title>Diet Dashboard</title>
+      <title>Diet</title>
       <meta name="description" content="Saved diet rotation, macro targets, body comp check-ins, and shopping list." />
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-      <meta name="theme-color" content={C.bg} />
+      <meta name="theme-color" content={BG} />
       <link rel="manifest" href="/manifest.json" />
       <link rel="apple-touch-icon" href="/icon-192.png" />
     </Head>
-    <div style={{ background: C.bg, minHeight: "100vh", padding: "22px 18px 40px", fontFamily: SANS }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');`}</style>
+    <style>{STYLES}</style>
+    <div style={{ background: c.bg, minHeight: "100vh", padding: "28px 18px 56px", fontFamily: SANS, color: c.tx }}>
+      <div style={{ maxWidth: 680, margin: "0 auto" }}>
 
       {/* header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24, flexWrap: "wrap", gap: 14 }}>
         <div>
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", color: C.protein }}>One day · swappable</div>
-          <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 700, color: C.text, marginTop: 2 }}>Diet</div>
-          <div style={{ fontFamily: MONO, fontSize: 10, color: C.faint, marginTop: 5 }}>
-            {loaded ? "Saved on this device" : "Loading saved state"}
-          </div>
+          <div style={{ marginBottom: 7 }}><Micro style={{ fontWeight: 400, letterSpacing: ".12em" }}>one day · swappable</Micro></div>
+          <div style={{ fontFamily: SANS, fontSize: 34, fontWeight: 400, color: c.ink, letterSpacing: "-0.03em", lineHeight: 1 }}>Diet</div>
         </div>
-        <div style={{ display: "flex", gap: 6, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: 4 }}>
-          {[["day", "Day"], ["body", "Body comp"], ["shopping", "Shopping list"]].map(([k, l]) => (
-            <button key={k} onClick={() => setTab(k)} style={{
-              fontFamily: SANS, fontSize: 13, fontWeight: 500, cursor: "pointer", padding: "7px 14px", borderRadius: 6,
-              border: "none", color: tab === k ? C.bg : C.dim, background: tab === k ? C.text : "transparent",
-            }}>{l}</button>
-          ))}
-        </div>
-      </div>
+        <Segmented value={tab} onChange={setTab} options={[
+          { key: "day", label: "Day" }, { key: "body", label: "Body comp" }, { key: "shopping", label: "Shopping list" },
+        ]} />
+      </header>
 
       {tab === "day" && (
         <>
           {/* totals */}
-          <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
-            <MacroTile label="Calories" val={Math.round(day.cal)} target={TARGETS.cal} unit="" color={C.text} />
-            <MacroTile label="Protein" val={Math.round(day.p)} target={TARGETS.p} unit="g" color={C.protein} />
-            <MacroTile label="Carbs" val={Math.round(day.c)} target={TARGETS.c} unit="g" color={C.carbs} />
-            <MacroTile label="Fat" val={Math.round(day.f)} target={TARGETS.f} unit="g" color={C.fat} />
-            <MacroTile label="Fibre" val={Math.round(day.fib)} target={TARGETS.fib} unit="g" color={C.fibre} />
-            <MacroTile label="Veg (RDI)" val={Math.round(day.veg)} target={TARGETS.veg} unit="g" color={C.veg} />
-            <MacroTile label="Added sugar" val={Math.round(day.sug)} target={TARGETS.sug} unit="g" color={C.sugar} />
-            <MacroTile label="Sodium" val={Math.round(day.sod)} target={TARGETS.sod} unit="mg" color={C.sodium} isLimit />
+          <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
+            <MacroTile label="calories" val={Math.round(day.cal)} target={TARGETS.cal} unit="" />
+            <MacroTile label="protein" val={Math.round(day.p)} target={TARGETS.p} unit="g" />
+            <MacroTile label="carbs" val={Math.round(day.c)} target={TARGETS.c} unit="g" />
+            <MacroTile label="fat" val={Math.round(day.f)} target={TARGETS.f} unit="g" />
+            <MacroTile label="fibre" val={Math.round(day.fib)} target={TARGETS.fib} unit="g" />
+            <MacroTile label="veg (rdi)" val={Math.round(day.veg)} target={TARGETS.veg} unit="g" />
+            <MacroTile label="added sugar" val={Math.round(day.sug)} target={TARGETS.sug} unit="g" />
+            <MacroTile label="sodium" val={Math.round(day.sod)} target={TARGETS.sod} unit="mg" isLimit />
           </div>
 
           {/* meals — in eating order */}
-          <MealCard title="Snack bowl" time="10:30am · eaten first" items={snackItems} totals={snackT}>
-            <Segmented value={snack} onChange={setSnack}
+          <MealCard title="Snack bowl" time="10:30am" items={snackItems} totals={snackT}>
+            <Segmented value={snack} onChange={setSnack} style={{ marginBottom: 14 }}
               options={Object.entries(SNACK).map(([k, v]) => ({ key: k, label: v.label }))} />
           </MealCard>
 
-          <MealCard title="Post-gym shake" time="1:00pm" items={shakeItems} totals={shakeT}>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, marginBottom: 8 }}>
-              Powder auto-set to {tbsp} tbsp — the least that keeps the day over {TARGETS.p}g protein{tbsp === 2 ? " (milk dropped to 333ml)" : ""}.
-            </div>
-          </MealCard>
+          <MealCard title="Post-gym shake" time="1:00pm" items={shakeItems} totals={shakeT} />
 
           <MealCard title="Dinner" time="6:00pm" items={mainItems} totals={mainT}>
-            <Segmented value={main} onChange={setMain}
+            <Segmented value={main} onChange={setMain} style={{ marginBottom: 14 }}
               options={Object.entries(MAIN).map(([k, v]) => ({ key: k, label: v.label }))} />
             {mainConf.hasSides && (
-              <div style={{ marginTop: -4 }}>
-                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", color: C.faint, marginBottom: 6 }}>Carb side · rice auto-sizes, potato fixed 500g</div>
+              <div>
+                <div style={{ marginBottom: 8 }}><Micro style={{ fontWeight: 400, letterSpacing: ".1em" }}>carb side</Micro></div>
                 <Segmented value={carb} onChange={setCarb}
                   options={Object.entries(CARB).map(([k, v]) => ({ key: k, label: v.label }))} />
               </div>
@@ -575,62 +626,63 @@ export default function DietDashboard() {
       {tab === "body" && (
         <>
           {/* current inputs */}
-          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-            <NumStepper label="Weight" value={bw} set={setBw} step={0.1} unit="kg" />
-            <NumStepper label="Body fat" value={bf} set={setBf} step={0.1} unit="%" />
+          <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+            <NumStepper label="weight" value={bw} set={setBw} step={0.1} unit="kg" />
+            <NumStepper label="body fat" value={bf} set={setBf} step={0.1} unit="%" />
           </div>
 
           {/* current vs goal */}
-          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-            <BodyStat label="Weight" val={bw.toFixed(1)} unit="kg" goal={GOAL.w} color={C.text} />
-            <BodyStat label="Body fat" val={bf.toFixed(1)} unit="%" goal={GOAL.bf} color={C.fat} />
-            <BodyStat label="Lean mass" val={lean.toFixed(1)} unit="kg" goal={goalLean.toFixed(0)} color={C.protein} />
-            <BodyStat label="Fat mass" val={fat.toFixed(1)} unit="kg" goal={goalFat.toFixed(0)} color={C.sugar} />
+          <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+            <BodyStat label="weight" val={bw.toFixed(1)} unit="kg" goal={GOAL.w} />
+            <BodyStat label="body fat" val={bf.toFixed(1)} unit="%" goal={GOAL.bf} />
+            <BodyStat label="lean mass" val={lean.toFixed(1)} unit="kg" goal={goalLean.toFixed(0)} />
+            <BodyStat label="fat mass" val={fat.toFixed(1)} unit="kg" goal={goalFat.toFixed(0)} />
           </div>
 
           {/* composition */}
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18, marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, color: C.text }}>Composition</span>
-              <span style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>{lean.toFixed(1)} lean · {fat.toFixed(1)} fat</span>
+          <div style={card}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+              <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 400, color: c.ink }}>Composition</span>
+              <span style={{ fontFamily: MONO, fontSize: 11.5, color: c.tx2 }}>{lean.toFixed(1)} lean · {fat.toFixed(1)} fat</span>
             </div>
-            <div style={{ height: 22, background: C.surface2, borderRadius: 6, overflow: "hidden" }}>
+            <div style={{ height: 22, background: c.bg, borderRadius: 999, boxShadow: SH.inSm, overflow: "hidden" }}>
               <div style={{ display: "flex", height: "100%", width: `${Math.min(100, (bw / GOAL.w) * 100)}%` }}>
-                <div style={{ width: `${(lean / bw) * 100}%`, background: C.protein }} />
-                <div style={{ width: `${(fat / bw) * 100}%`, background: C.sugar }} />
+                <div style={{ width: `${(lean / bw) * 100}%`, background: c.ink }} />
+                <div style={{ width: `${(fat / bw) * 100}%`, background: c.tx3 }} />
               </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10, color: C.faint, marginTop: 5 }}>
-              <span><span style={{ color: C.protein }}>■</span> lean&nbsp;&nbsp;<span style={{ color: C.sugar }}>■</span> fat</span>
+            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10.5, color: c.tx3, marginTop: 8 }}>
+              <span><span style={{ color: c.ink }}>■</span> lean&nbsp;&nbsp;<span style={{ color: c.tx3 }}>■</span> fat</span>
               <span>scale → {GOAL.w}kg</span>
             </div>
           </div>
 
           {/* progress + projection */}
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18, marginBottom: 14 }}>
-            <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 12 }}>Progress to {GOAL.w}kg @ {GOAL.bf}%</div>
-            <ProgressLine label="Weight" from={startW} to={GOAL.w} val={bw} color={C.text} />
-            <ProgressLine label="Lean mass" from={startLean} to={goalLean} val={lean} color={C.protein} />
-            <div style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "stretch", flexWrap: "wrap" }}>
-              <NumStepper label="Gain rate / wk" value={rate} set={setRate} step={0.05} unit="kg" />
-              <div style={{ flex: "1 1 160px", background: C.surface2, borderRadius: 10, padding: "12px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <div style={card}>
+            <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 400, color: c.ink, marginBottom: 14 }}>Progress to {GOAL.w}kg @ {GOAL.bf}%</div>
+            <ProgressLine label="weight" from={startW} to={GOAL.w} val={bw} />
+            <ProgressLine label="lean mass" from={startLean} to={goalLean} val={lean} />
+            <div style={{ display: "flex", gap: 12, marginTop: 16, alignItems: "stretch", flexWrap: "wrap" }}>
+              <NumStepper label="gain rate / wk" value={rate} set={setRate} step={0.05} unit="kg" />
+              <div style={{ flex: "1 1 160px", background: c.bg, borderRadius: 16, boxShadow: SH.inSm, padding: "15px 16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 {wToGo > 0 ? (
                   <>
-                    <div style={{ fontFamily: MONO, fontSize: 20, color: C.text }}>~{Math.ceil(weeks)} wks</div>
-                    <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint }}>{(GOAL.w - bw).toFixed(1)}kg to go · {eta.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 24, color: c.ink, letterSpacing: "-0.02em" }}>~{Math.ceil(weeks)} wks</div>
+                    <div style={{ fontFamily: MONO, fontSize: 11, color: c.tx3, marginTop: 3 }}>{(GOAL.w - bw).toFixed(1)}kg to go · {eta.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}</div>
                   </>
                 ) : (
-                  <div style={{ fontFamily: MONO, fontSize: 14, color: C.fibre }}>Goal weight reached ✓</div>
+                  <div style={{ fontFamily: MONO, fontSize: 13, color: c.ink }}>goal weight reached ✓</div>
                 )}
               </div>
             </div>
           </div>
 
           {/* log */}
-          <button onClick={logToday} style={{
-            width: "100%", fontFamily: SANS, fontSize: 14, fontWeight: 600, cursor: "pointer",
-            padding: "12px", borderRadius: 10, color: C.bg, background: C.protein, border: "none", marginBottom: 14,
-          }}>+ Log today ({bw.toFixed(1)}kg · {bf.toFixed(1)}%)</button>
+          <button className="b-btn" data-v="primary" onClick={logToday} style={{
+            width: "100%", fontFamily: SANS, fontSize: 15, fontWeight: 700, cursor: "pointer",
+            padding: "15px", borderRadius: 999, color: c.onInk, background: c.ink, border: "none",
+            boxShadow: SH.ink, marginBottom: 18,
+          }}>Log today ({bw.toFixed(1)}kg · {bf.toFixed(1)}%)</button>
 
           {log.length >= 2 && (() => {
             const ws = log.map((e) => e.w);
@@ -642,12 +694,12 @@ export default function DietDashboard() {
               return `${x.toFixed(1)},${y.toFixed(1)}`;
             }).join(" ");
             return (
-              <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18, marginBottom: 14 }}>
-                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", color: C.faint, marginBottom: 8 }}>Weight trend</div>
+              <div style={card}>
+                <div style={{ marginBottom: 10 }}><Micro>weight trend</Micro></div>
                 <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }} preserveAspectRatio="none">
-                  <polyline points={pts} fill="none" stroke={C.protein} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                  <polyline points={pts} fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
                 </svg>
-                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10, color: C.faint, marginTop: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10.5, color: c.tx3, marginTop: 4 }}>
                   <span>{min.toFixed(1)}kg</span><span>{max.toFixed(1)}kg</span>
                 </div>
               </div>
@@ -655,18 +707,18 @@ export default function DietDashboard() {
           })()}
 
           {/* history */}
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "6px 18px 14px" }}>
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", color: C.faint, margin: "12px 0 4px" }}>Check-ins</div>
+          <div style={{ background: c.bg, borderRadius: 18, boxShadow: SH.out, padding: "6px 20px 16px" }}>
+            <div style={{ margin: "14px 0 4px" }}><Micro>check-ins</Micro></div>
             {log.length === 0 && (
-              <div style={{ fontFamily: SANS, fontSize: 13, color: C.dim, padding: "8px 0" }}>No check-ins yet. Log today to start tracking.</div>
+              <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 400, color: c.tx2, padding: "8px 0" }}>No check-ins yet.</div>
             )}
             {[...log].reverse().map((e) => {
               const l = e.w * (1 - e.bf / 100);
               return (
-                <div key={e.date} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderTop: `1px solid ${C.surface2}` }}>
-                  <span style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>{e.date}</span>
-                  <span style={{ fontFamily: MONO, fontSize: 12, color: C.text }}>{e.w}kg · {e.bf}% · <span style={{ color: C.protein }}>{l.toFixed(1)} lean</span></span>
-                  <button onClick={() => deleteEntry(e.date)} style={{ background: "none", border: "none", color: C.faint, cursor: "pointer", fontSize: 16, lineHeight: 1, padding: "0 4px" }}>×</button>
+                <div key={e.date} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 0", borderTop: `1px solid ${c.line}` }}>
+                  <span style={{ fontFamily: MONO, fontSize: 12, color: c.tx2 }}>{e.date}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 12, color: c.ink }}>{e.w}kg · {e.bf}% · <span style={{ color: c.tx2 }}>{l.toFixed(1)} lean</span></span>
+                  <button className="b-x" aria-label={`delete ${e.date}`} onClick={() => deleteEntry(e.date)} style={{ background: "none", border: "none", color: c.tx3, cursor: "pointer", fontSize: 16, lineHeight: 1, padding: "0 4px" }}>✕</button>
                 </div>
               );
             })}
@@ -676,86 +728,60 @@ export default function DietDashboard() {
 
       {tab === "shopping" && (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "flex-start", marginBottom: 18, flexWrap: "wrap" }}>
             <div>
-              <div style={{ display: "flex", gap: 6, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: 4, marginBottom: 8 }}>
-                {RETAILER_ORDER.map((key) => (
-                  <button key={key} onClick={() => setShopRetailer(key)} style={{
-                    fontFamily: SANS, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "7px 14px", borderRadius: 6,
-                    border: "none", color: shopRetailer === key ? C.bg : C.dim, background: shopRetailer === key ? C.text : "transparent",
-                  }}>{RETAILER_LABELS[key]}</button>
-                ))}
-              </div>
-              <div style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>
-                {RETAILER_LABELS[shopRetailer]} list · {checkedCount}/{shoppingCount} packed.
+              <Segmented value={shopRetailer} onChange={setShopRetailer} style={{ marginBottom: 9 }}
+                options={RETAILER_ORDER.map((key) => ({ key, label: RETAILER_LABELS[key] }))} />
+              <div style={{ fontFamily: MONO, fontSize: 11.5, color: c.tx2 }}>
+                {checkedCount}/{shoppingCount} packed
               </div>
             </div>
-            <button onClick={clearShopping} disabled={!checkedCount} style={{
-              fontFamily: SANS, fontSize: 12, fontWeight: 600, cursor: checkedCount ? "pointer" : "default",
-              padding: "7px 10px", borderRadius: 7, color: checkedCount ? C.text : C.faint,
-              background: checkedCount ? C.surface : "transparent", border: `1px solid ${C.border}`,
-              opacity: checkedCount ? 1 : 0.55,
+            <button className="b-btn" data-v="ghost" onClick={clearShopping} disabled={!checkedCount} style={{
+              fontFamily: SANS, fontSize: 12.5, fontWeight: 400, cursor: checkedCount ? "pointer" : "not-allowed",
+              padding: "10px 16px", borderRadius: 999, color: checkedCount ? c.tx : c.tx3,
+              background: c.bg, border: "none", boxShadow: SH.outSm, opacity: checkedCount ? 1 : 0.5,
             }}>Reset ticks</button>
           </div>
           {/* day count → quantities scale to suit */}
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+          <div style={card}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: C.text }}>Shopping for</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button onClick={() => setShopDays(Math.max(1, shopDays - 1))} style={stepBtn}>–</button>
-                <div style={{ fontFamily: MONO, fontSize: 22, color: C.text, minWidth: 78, textAlign: "center" }}>
-                  {shopDays}<span style={{ fontSize: 12, color: C.faint }}> {plural("day", shopDays)}</span>
+              <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 400, color: c.ink }}>Shopping for</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <button className="b-step" aria-label="fewer days" onClick={() => setShopDays(Math.max(1, shopDays - 1))} style={stepBtn}>–</button>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 26, color: c.ink, minWidth: 96, textAlign: "center", letterSpacing: "-0.02em" }}>
+                  {shopDays}<span style={{ fontFamily: MONO, fontSize: 12, color: c.tx3 }}> {plural("day", shopDays)}</span>
                 </div>
-                <button onClick={() => setShopDays(shopDays + 1)} style={stepBtn}>+</button>
+                <button className="b-step" aria-label="more days" onClick={() => setShopDays(shopDays + 1)} style={stepBtn}>+</button>
               </div>
             </div>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, marginTop: 8 }}>
-              {shopCtx.homeDays} home {plural("dinner", shopCtx.homeDays)} · {shopCtx.gygDays} GYG out (1 in {SHOP_GYG_RATIO}). Steak/salmon & potato/rice split evenly.
+            <div style={{ fontFamily: MONO, fontSize: 11, color: c.tx3, marginTop: 10 }}>
+              {shopCtx.homeDays} home {plural("dinner", shopCtx.homeDays)} · {shopCtx.gygDays} gyg out
             </div>
           </div>
           {shoppingGroups.map((s) => (
-            <div key={s.sec} style={{ marginBottom: 18 }}>
-              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", color: C.protein, marginBottom: 8 }}>{s.sec}</div>
-              {s.rows.map((r) => {
-                const key = shoppingKey(shopRetailer, r);
-                const on = checked[key];
-                const buy = buys[r.id] || { kind: "info", label: r.quantity || "", lineTotal: null };
-                const muted = buy.kind === "skip" || buy.kind === "gyg" || buy.kind === "info";
-                const priceLabel = buy.lineTotal != null ? `$${buy.lineTotal.toFixed(2)}` : "—";
-                return (
-                  <button key={key} onClick={() => setChecked((p) => ({ ...p, [key]: !p[key] }))} style={{
-                    display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", textAlign: "left",
-                    background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: "11px 13px", marginBottom: 7,
-                    cursor: "pointer", opacity: muted ? 0.6 : 1,
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
-                      <span style={{
-                        width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                        border: `1.5px solid ${on ? C.protein : C.faint}`, background: on ? C.protein : "transparent",
-                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: C.bg, fontWeight: 700,
-                      }}>{on ? "✓" : ""}</span>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontFamily: SANS, fontSize: 13.5, color: on ? C.faint : C.text, textDecoration: on ? "line-through" : "none" }}>{r.name}</div>
-                        <div style={{ fontFamily: MONO, fontSize: 11.5, color: muted ? C.faint : C.dim }}>
-                          {buy.label}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ fontFamily: MONO, fontSize: 12.5, color: C.dim, paddingLeft: 10, whiteSpace: "nowrap" }}>{priceLabel}</div>
-                  </button>
-                );
-              })}
+            <div key={s.sec} style={{ marginBottom: 22 }}>
+              <div style={{ marginBottom: 10 }}><Micro>{s.sec.toLowerCase()}</Micro></div>
+              {s.rows.map(renderShopRow)}
             </div>
           ))}
-          <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.border}`, paddingTop: 14, marginTop: 4 }}>
-            <span style={{ fontFamily: SANS, fontSize: 14, color: C.text, fontWeight: 600 }}>Estimated basket · {shopDays} {plural("day", shopDays)}</span>
-            <span style={{ fontFamily: MONO, fontSize: 15, color: C.protein }}>${shopTotal.toFixed(2)}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: `1px solid ${c.line}`, paddingTop: 16, marginTop: 4 }}>
+            <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 400, color: c.ink }}>Fresh shop · {shopDays} {plural("day", shopDays)}</span>
+            <span style={{ fontFamily: MONO, fontSize: 16, color: c.ink }}>${shopTotal.toFixed(2)}</span>
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, marginTop: 6 }}>
-            Quantities scale to the day count; 1 in {SHOP_GYG_RATIO} dinners is GYG (eaten out). Prices from data/diet-retailer-equivalents.xlsx.
-          </div>
+
+          {keepRows.length > 0 && (
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${c.line}` }}>
+              <div style={{ marginBottom: 12 }}><Micro>keep on hand</Micro></div>
+              {keepRows.map(renderShopRow)}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 10 }}>
+                <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 400, color: c.tx }}>Restock total</span>
+                <span style={{ fontFamily: MONO, fontSize: 13.5, color: c.tx2 }}>${keepTotal.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
+      </div>
     </div>
     </>
   );
