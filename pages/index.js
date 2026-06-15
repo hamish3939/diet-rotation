@@ -82,8 +82,8 @@ const sum = (items) =>
 const ALMOND_500 = { name: "So Good HP almond milk", note: "500 ml", p: 20, c: 2, f: 11, cal: 194, fib: 2, sug: 1, sod: 240 };
 const ALMOND_333 = { name: "So Good HP almond milk", note: "333 ml", p: 13, c: 1, f: 7, cal: 129, fib: 1, sug: 1, sod: 160 };
 const almondMilk = (tbsp) => (tbsp === 2 ? ALMOND_333 : ALMOND_500);
+// banana is added separately (1–2 medium, auto-sized toward ~3000 kcal)
 const SHAKE_EXTRAS = [
-  { name: "Banana", note: "1 medium", p: 1, c: 27, f: 0, cal: 105, fib: 3, sug: 0, sod: 1 },
   { name: "Frozen baby spinach", note: "1 portion · 100g", p: 3, c: 1, f: 0.5, cal: 25, fib: 2, sug: 0, sod: 65, veg: 100 },
   { name: "Creatine", note: "5 g", p: 0, c: 0, f: 0, cal: 0, fib: 0, sug: 0, sod: 0 },
 ];
@@ -95,11 +95,11 @@ const powderItem = (n) => ({
   cal: Math.round(POWDER_TBSP.cal * n), fib: Math.round(POWDER_TBSP.fib * n), sug: Math.round(POWDER_TBSP.sug * n), sod: Math.round(POWDER_TBSP.sod * n),
 });
 const YOG_BASE = [
-  { name: "Cocobella coconut yoghurt", note: "½ tub · 250g · rotating flavours", p: 3, c: 20, f: 25, cal: 338, fib: 2, sug: 13, sod: 30 },
+  { name: "Cocobella coconut yoghurt", note: "⅓ tub · ~167g · rotating flavours", p: 2, c: 13, f: 17, cal: 225, fib: 1, sug: 9, sod: 20 },
 ];
 // oat clusters flex 1–2 cups when extra carbs are needed to reach ~3k
 const clustersItem = (n) => ({ name: "Oat clusters (any brand)", note: `${n} cup${n > 1 ? "s" : ""} · ${50 * n}g`, p: 4 * n, c: 32 * n, f: 6 * n, cal: 210 * n, fib: 4 * n, sug: 7 * n, sod: 45 * n });
-// banana count in the yoghurt bowl flexes with the carb choice (potato day = 1, rice day = 2)
+// banana count in the yoghurt bowl is auto-sized below (1 medium each) to land the day near ~3000 kcal
 const bananaItem = (n) => ({ name: "Banana", note: `${n} medium`, p: 1 * n, c: 27 * n, f: 0, cal: 105 * n, fib: 3 * n, sug: 0, sod: 1 * n });
 const RICE = { name: "Macro brown rice & lentils", note: "1 pouch · 250g", p: 12, c: 56, f: 7, cal: 350, fib: 10, sug: 0, sod: 520 };
 const VEG = { name: "Frozen mixed vegetables", note: "250 g", p: 5, c: 12, f: 1, cal: 100, fib: 6, sug: 0, sod: 35, veg: 250 };
@@ -224,7 +224,7 @@ const BUY_MODEL = {
   "Nuttelex buttery spread":     { staple: true, keep: true },
   "Macro microwave rice":        { pool: "home", share: "carbRice", count: true, perDay: 2, word: "pouch" },
   "A.Vogel Herbamare Original":  { staple: true, keep: true },
-  "Cocobella coconut yoghurt":   { pool: "all", perDay: 250 },
+  "Cocobella coconut yoghurt":   { pool: "all", perDay: 167 },
   "Oat clusters / granola":      { pool: "all", perDay: 100 },
   "Guzman bowl":                 { gyg: true },
   "Beef & cheese taco":          { gyg: true },
@@ -468,20 +468,20 @@ export default function DietDashboard() {
   const extras = extrasFor(main);
 
   // lowest powder dose (2/3/4 tbsp) that still keeps the day's protein over 170; almond milk shrinks to 333ml at 2 tbsp
-  const chooseTbsp = (n, clusters, bananas) => {
+  const chooseTbsp = (n, clusters, yogBananas, shakeBananas) => {
     for (const t of [2, 3, 4]) {
-      const items = [powderItem(t), almondMilk(t), ...SHAKE_EXTRAS, ...YOG_BASE, clustersItem(clusters), bananaItem(bananas), ...snackItems, MAIN[main].item, ...sidesFor(main, carb, n), ...extras];
+      const items = [powderItem(t), almondMilk(t), bananaItem(shakeBananas), ...SHAKE_EXTRAS, ...YOG_BASE, clustersItem(clusters), bananaItem(yogBananas), ...snackItems, MAIN[main].item, ...sidesFor(main, carb, n), ...extras];
       if (sum(items).p > 170) return t;
     }
     return 4;
   };
 
-  // build the full day for a given rice count + cluster cups + banana count
-  const buildDay = (n, clusters, bananas) => {
-    const tbsp = chooseTbsp(n, clusters, bananas);
-    const shakeItems = [powderItem(tbsp), almondMilk(tbsp), ...SHAKE_EXTRAS];
+  // build the full day for a given rice count + cluster cups + banana counts (yoghurt & shake, 1–2 each)
+  const buildDay = (n, clusters, yogBananas, shakeBananas = 1) => {
+    const tbsp = chooseTbsp(n, clusters, yogBananas, shakeBananas);
+    const shakeItems = [powderItem(tbsp), almondMilk(tbsp), bananaItem(shakeBananas), ...SHAKE_EXTRAS];
     const mainItems = [mainConf.item, ...sidesFor(main, carb, n), ...extras];
-    const yoghurtItems = [...YOG_BASE, clustersItem(clusters), bananaItem(bananas)];
+    const yoghurtItems = [...YOG_BASE, clustersItem(clusters), bananaItem(yogBananas)];
     const total = sum([...shakeItems, ...yoghurtItems, ...snackItems, ...mainItems]);
     return { mainItems, yoghurtItems, shakeItems, tbsp, total };
   };
@@ -491,12 +491,16 @@ export default function DietDashboard() {
   if (mainConf.hasSides && carb === "rice") {
     carbCount = Math.abs(buildDay(2, 1, 1).total.cal - 3000) < Math.abs(buildDay(1, 1, 1).total.cal - 3000) ? 2 : 1;
   }
-  // yoghurt fillers (last meal): 2 cups of clusters first, then a 2nd banana, while the day still lands sub-2900
-  let clusters = 1, bananas = 1;
-  if (buildDay(carbCount, 1, 1).total.cal < 2900) clusters = 2;
-  if (buildDay(carbCount, clusters, 1).total.cal < 2900) bananas = 2;
+  // fillers (last): bump oat clusters to 2 cups first, then add bananas one at a
+  // time (yoghurt then shake, max 2 each) while each lands the day closer to ~3000.
+  let clusters = 1, yogBananas = 1, shakeBananas = 1;
+  if (buildDay(carbCount, 1, 1, 1).total.cal < 2900) clusters = 2;
+  const GOAL_CAL = 3000;
+  const distTo3k = (yb, sb) => Math.abs(buildDay(carbCount, clusters, yb, sb).total.cal - GOAL_CAL);
+  if (distTo3k(yogBananas + 1, shakeBananas) < distTo3k(yogBananas, shakeBananas)) yogBananas = 2;
+  if (distTo3k(yogBananas, shakeBananas + 1) < distTo3k(yogBananas, shakeBananas)) shakeBananas = 2;
 
-  const D = buildDay(carbCount, clusters, bananas);
+  const D = buildDay(carbCount, clusters, yogBananas, shakeBananas);
   const { mainItems, yoghurtItems, shakeItems } = D;
 
   const shakeT = sum(shakeItems);
